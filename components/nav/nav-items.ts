@@ -6,5 +6,6 @@ export const navItems: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: "home" },
   { label: "Courses", href: "/courses", icon: "map" },
   { label: "Rounds", href: "/rounds", icon: "clipboard" },
+  { label: "Chat", href: "/chat", icon: "chat" },
   { label: "Profile", href: "/profile", icon: "user" },
 ];
