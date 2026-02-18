@@ -29,6 +29,20 @@ export async function searchCourses(searchTerm: string): Promise<Course[]> {
 }
 
 /**
+ * 列出所有球场，附带 tee 数量
+ */
+export async function listCourses(): Promise<(Course & { tee_count: number })[]> {
+  const result = await query<Course & { tee_count: number }>(
+    `SELECT c.*, COALESCE(t.cnt, 0)::int AS tee_count
+     FROM courses c
+     LEFT JOIN (SELECT course_id, COUNT(*) AS cnt FROM course_tees GROUP BY course_id) t
+       ON t.course_id = c.id
+     ORDER BY c.name`
+  );
+  return result.rows;
+}
+
+/**
  * 根据 ID 获取球场
  */
 export async function getCourseById(id: string): Promise<Course | null> {
@@ -56,6 +70,40 @@ export async function createCourse(data: {
     [data.name, data.location_text ?? null, data.latitude ?? null, data.longitude ?? null, data.course_note ?? null]
   );
   return result.rows[0];
+}
+
+/**
+ * 更新球场信息
+ */
+export async function updateCourse(
+  id: string,
+  data: { name?: string; location_text?: string; course_note?: string }
+): Promise<Course | null> {
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  let idx = 1;
+
+  if (data.name !== undefined) {
+    fields.push(`name = $${idx++}`);
+    values.push(data.name);
+  }
+  if (data.location_text !== undefined) {
+    fields.push(`location_text = $${idx++}`);
+    values.push(data.location_text);
+  }
+  if (data.course_note !== undefined) {
+    fields.push(`course_note = $${idx++}`);
+    values.push(data.course_note);
+  }
+
+  if (fields.length === 0) return getCourseById(id);
+
+  values.push(id);
+  const result = await query<Course>(
+    `UPDATE courses SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+    values
+  );
+  return result.rows[0] ?? null;
 }
 
 /**
