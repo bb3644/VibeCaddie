@@ -1,0 +1,96 @@
+{
+  "source": "The Four Foundations of Golf",
+  "author": "Jon Sherman",
+  "chunks": [
+    {
+      "id": "found_001",
+      "topic": "course_management",
+      "principle": "The biggest mistake amateur golfers make is playing a course management strategy designed for professionals. Your strategy should be based on your actual shot patterns, not what you see on TV.",
+      "application": "Track your real dispersion pattern — where your shots actually go, not where you aim. Use that oval shape as the basis for every target selection decision on the course."
+    },
+    {
+      "id": "found_002",
+      "topic": "tee_strategy",
+      "principle": "For most amateurs, driver is the correct play on the majority of par 4s and par 5s, because the distance advantage outweighs the accuracy cost for typical handicap players.",
+      "application": "Unless the hole is extremely tight or there's forced carry trouble at your driver distance, hit driver. The extra distance shortens your approach, and shorter approaches find more greens."
+    },
+    {
+      "id": "found_003",
+      "topic": "scoring",
+      "principle": "Your score is primarily determined by how you manage your bad shots, not by how good your best shots are. Avoiding double bogeys matters far more than making birdies.",
+      "application": "After a bad shot, your only goal is to get back in position for the next shot. Don't try a hero recovery — punch out to the fairway, take your bogey, and move on."
+    },
+    {
+      "id": "found_004",
+      "topic": "mental_game",
+      "principle": "Expectations should be calibrated to your handicap. A 15-handicap should expect to make bogey on most holes and be pleasantly surprised by pars, not frustrated by them.",
+      "application": "Before each round, set your target score realistically. If you're a 15-handicap, shooting 87 is a good round. Stop comparing yourself to par and start comparing to your own realistic baseline."
+    },
+    {
+      "id": "found_005",
+      "topic": "green_approach",
+      "principle": "Aim for the center of the green on approach shots. Amateurs overestimate their precision; aiming at the pin when it's tucked near trouble leads to more lost strokes than gained.",
+      "application": "On approach shots, pick the middle of the green as your target. You'll occasionally end up near a pin by chance, but you'll rarely end up in serious trouble."
+    },
+    {
+      "id": "found_006",
+      "topic": "risk_reward",
+      "principle": "The expected value of conservative play is almost always higher for amateurs. The math of risk-reward shifts dramatically when your success rate on aggressive shots drops below 50%.",
+      "application": "Before attempting a risky shot, estimate your success rate honestly. If it's below 60%, the conservative play will save you strokes over the course of a full round."
+    },
+    {
+      "id": "found_007",
+      "topic": "hazard_placement",
+      "principle": "Most penalty strokes come from hazards that are in play for your actual shot pattern, not from hazards that are in play for your intended target. Shift your target to take hazards out of play.",
+      "application": "If water runs down the left side, don't aim at the middle of the fairway — aim right-center. Your misses will stay dry, and your good shots will still be in the fairway."
+    },
+    {
+      "id": "found_008",
+      "topic": "par3_strategy",
+      "principle": "On par 3s, club selection should be based on carrying the front edge of the green with your average distance, not your best strike. Most amateurs come up short on par 3s.",
+      "application": "Take one more club than you think on par 3s. The center of the green is your target, and flying it 10 yards past center is better than landing 10 yards short of the front edge."
+    },
+    {
+      "id": "found_009",
+      "topic": "par5_strategy",
+      "principle": "Par 5s are the best scoring holes for amateurs — not because of reaching in two, but because three well-placed shots leave a reasonable birdie or easy par putt.",
+      "application": "Play par 5s as three-shot holes. Hit driver, lay up to your favorite approach distance, and give yourself a birdie putt. This strategy produces more birdies than trying to reach in two."
+    },
+    {
+      "id": "found_010",
+      "topic": "wind_weather",
+      "principle": "Wind affects amateurs more than they realize because higher-handicap shots have more spin and higher trajectories. Take extra club into the wind beyond what feels reasonable.",
+      "application": "In moderate wind (10-15 mph), take two extra clubs into the wind, not one. Your ball spins more than a pro's, so wind amplifies the distance loss beyond what you'd expect."
+    },
+    {
+      "id": "found_011",
+      "topic": "scoring",
+      "principle": "Strokes are lost in predictable patterns: three-putts, penalty strokes, and short-game mistakes from bad positions. Eliminating even one of these categories drops your scores significantly.",
+      "application": "Track where you lose strokes for 5 rounds. You'll likely find that eliminating three-putts or penalties alone could save 3-5 shots per round — more than any swing change."
+    },
+    {
+      "id": "found_012",
+      "topic": "mental_game",
+      "principle": "Process over outcome: focus on making good decisions, not on the result of each shot. Good decisions sometimes produce bad outcomes, and that's okay.",
+      "application": "After each shot, evaluate your decision, not the result. If you aimed center-green with the right club and pulled it into a bunker, the decision was still correct."
+    },
+    {
+      "id": "found_013",
+      "topic": "course_management",
+      "principle": "Think about your next shot before hitting your current one. Every shot should leave you in the best position for what follows, not just advance the ball the maximum distance.",
+      "application": "On every shot, ask: where do I want to play my next shot from? Then work backwards to determine the right target and club for the current shot."
+    },
+    {
+      "id": "found_014",
+      "topic": "risk_reward",
+      "principle": "The 'hero shot' over water or through trees has a much lower success rate than amateurs believe. Studies show amateurs succeed on aggressive recovery shots less than 20% of the time.",
+      "application": "When your ball is in trouble, take the medicine. A sideways chip to the fairway followed by a wedge to the green almost always beats trying to thread a gap in the trees."
+    },
+    {
+      "id": "found_015",
+      "topic": "scoring",
+      "principle": "Managing your proximity to the hole on approach shots is the biggest lever for scoring improvement. Getting 10 feet closer on average makes a massive difference in putts per round.",
+      "application": "Focus on hitting more greens from closer distances rather than improving your putting. The best way to reduce putts is to hit it closer, and the best way to hit it closer is to have shorter approaches."
+    }
+  ]
+}

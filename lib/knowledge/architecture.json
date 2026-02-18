@@ -1,0 +1,96 @@
+{
+  "source": "Golf Architecture for Normal People",
+  "author": "Geoff Shackelford",
+  "chunks": [
+    {
+      "id": "arch_001",
+      "topic": "hazard_placement",
+      "principle": "Hazards on great courses are placed to challenge the golfer who bites off more than they can chew, not to punish the player who plays within their means.",
+      "application": "If a bunker or water hazard seems intimidating, look for the safer route the architect deliberately left open. The penalty is reserved for those who gamble, not for those who play smart."
+    },
+    {
+      "id": "arch_002",
+      "topic": "tee_strategy",
+      "principle": "Not every hole demands driver. Many holes are designed so that the optimal play off the tee is a club that leaves you in the widest part of the fairway at your comfortable approach distance.",
+      "application": "Before pulling driver, look at where the fairway narrows and where the trouble is. A 3-wood or hybrid to the fat part of the fairway often sets up an easier second shot."
+    },
+    {
+      "id": "arch_003",
+      "topic": "course_management",
+      "principle": "Architects design courses with a 'line of charm' — a route that tempts bold play — and a 'line of instinct' — a safer, more conservative route that still allows a reasonable score.",
+      "application": "Identify both routes on every hole. Unless your game is sharp that day, take the line of instinct. The conservative route is always there by design."
+    },
+    {
+      "id": "arch_004",
+      "topic": "green_approach",
+      "principle": "Greens are designed with a preferred angle of approach. The architect places hazards and contours to reward shots from a specific side of the fairway.",
+      "application": "Before your tee shot, look at the green and figure out which side gives the best angle in. Your tee shot strategy should be backwards-planned from the ideal approach angle."
+    },
+    {
+      "id": "arch_005",
+      "topic": "risk_reward",
+      "principle": "Strategic design means every hole offers multiple paths of varying risk. The greater the risk, the greater the potential reward — but the safe play is always viable.",
+      "application": "On risk-reward holes, honestly assess your skill level and current form. The architect designed the safe route to yield bogey at worst; the risky route might yield birdie but also double bogey."
+    },
+    {
+      "id": "arch_006",
+      "topic": "scoring",
+      "principle": "Great courses are designed so that a player who avoids the hazards and finds the green can always make par or bogey, regardless of skill level.",
+      "application": "Your primary goal should be avoiding the big number. If you can keep the ball in play and give yourself a putt for par on most holes, you're playing the course as the architect intended."
+    },
+    {
+      "id": "arch_007",
+      "topic": "mental_game",
+      "principle": "Architects use visual intimidation — deep bunkers, water carries, narrow corridors — to create anxiety. Understanding this is a trick helps you see through it.",
+      "application": "When a hole looks terrifying from the tee, remind yourself the architect is playing with your emotions. Measure the actual carry distances and landing areas; they're usually more generous than they appear."
+    },
+    {
+      "id": "arch_008",
+      "topic": "par3_strategy",
+      "principle": "Par-3 holes are the architect's canvas for strategic challenge. The green complex, not the tee shot distance, is where the real test lies.",
+      "application": "On par 3s, club selection should prioritize hitting the correct portion of the green over pin-hunting. Missing to the wrong side of a well-designed par-3 green creates very difficult up-and-downs."
+    },
+    {
+      "id": "arch_009",
+      "topic": "par5_strategy",
+      "principle": "Par 5s are designed with decision points: the second shot is the critical strategic moment where the player chooses between going for the green and laying up to a preferred distance.",
+      "application": "On par 5s, don't automatically try to get as close as possible. Laying up to your favorite wedge distance from a good angle often produces better results than a hero shot from 230 yards."
+    },
+    {
+      "id": "arch_010",
+      "topic": "wind_weather",
+      "principle": "Classic courses are designed to play differently depending on wind direction. Holes that are birdie opportunities downwind become survival tests into the wind.",
+      "application": "Adjust your strategy entirely when the wind shifts. A hole you drove yesterday with a 7-iron approach might require a layup strategy when the wind is against you."
+    },
+    {
+      "id": "arch_011",
+      "topic": "hazard_placement",
+      "principle": "Fairway bunkers are typically placed at the distance where a good drive lands. They define the hole's strategic choice, not punish bad shots.",
+      "application": "If your drive doesn't reach the fairway bunker, you might actually be playing the safer route. Don't feel you need to carry bunkers that are set at tour-player distances."
+    },
+    {
+      "id": "arch_012",
+      "topic": "course_management",
+      "principle": "The best strategy is to play away from the worst trouble. Architects create 'bailout' areas — spots where a miss is relatively benign — and these should be your targets when uncertain.",
+      "application": "On every approach shot, identify where the biggest trouble is and aim away from it. The bailout side usually offers a simple chip or putt, while the trouble side leads to double bogey."
+    },
+    {
+      "id": "arch_013",
+      "topic": "green_approach",
+      "principle": "Green surrounds are as important as the green surface itself. Architects shape the areas around greens to create varying difficulty depending on where you miss.",
+      "application": "When you can't be precise, miss on the side with the flattest ground around the green. A ball that runs off to a mowed area is always better than one in a deep bunker or thick rough."
+    },
+    {
+      "id": "arch_014",
+      "topic": "tee_strategy",
+      "principle": "Architects design teeing grounds at angles that either invite or discourage certain shot shapes. The tee box alignment itself is a hint about the ideal play.",
+      "application": "Notice which direction the tee box points. If it aims slightly left of center, the architect may be encouraging a fade. Let the tee alignment guide your strategy."
+    },
+    {
+      "id": "arch_015",
+      "topic": "risk_reward",
+      "principle": "Driveable par 4s are designed to tempt you with a possible eagle or birdie while hiding severe punishment for a miss. The layup almost always yields a better average score for amateurs.",
+      "application": "On short par 4s, calculate honestly: if you go for the green, what percentage of the time do you reach it vs. end up in serious trouble? For most amateurs, the layup-and-wedge strategy scores lower."
+    }
+  ]
+}

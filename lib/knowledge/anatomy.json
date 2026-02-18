@@ -1,0 +1,96 @@
+{
+  "source": "The Anatomy of a Golf Course",
+  "author": "Tom Doak",
+  "chunks": [
+    {
+      "id": "anat_001",
+      "topic": "hazard_placement",
+      "principle": "Bunkers serve three purposes: directional (guiding play), penal (punishing poor shots), and strategic (creating choices). Understanding which type you face changes your approach.",
+      "application": "Look at each bunker and ask: is it there to scare me off a line, punish a specific miss, or offer me a choice? If it's strategic, there's always a safe route around it."
+    },
+    {
+      "id": "anat_002",
+      "topic": "hazard_placement",
+      "principle": "Water hazards are placed where they create the maximum strategic tension. The carry distance is calibrated to make the average player think twice, while the better player must still respect it.",
+      "application": "Before trying to carry water, know your actual carry distance with the club in hand — not your best ever, but your average. If it's marginal, the architect wants you to lay up."
+    },
+    {
+      "id": "anat_003",
+      "topic": "green_approach",
+      "principle": "Green complexes are the most important element of any hole. The slopes, tiers, and surrounding contours dictate where you must place your approach to have a realistic birdie putt.",
+      "application": "Study the green before choosing your approach club. A shot to the correct tier, even if it's 30 feet from the pin, is far better than a shot to the wrong tier 15 feet away."
+    },
+    {
+      "id": "anat_004",
+      "topic": "green_approach",
+      "principle": "The front of the green is almost always the easiest entry point. Architects tilt most greens to accept a running shot from the front, while guarding the back and sides with hazards or slopes.",
+      "application": "When in doubt, take one less club and aim for the front-center of the green. A ball that lands short and runs on is better than one that flies the green into back trouble."
+    },
+    {
+      "id": "anat_005",
+      "topic": "course_management",
+      "principle": "Routing — the sequence and direction of holes — determines how wind, elevation, and sun affect each hole differently. No two holes play the same way.",
+      "application": "Pay attention to how each hole's direction changes. A course that routes in multiple directions means your wind strategy must be reassessed on every hole, not assumed from the first tee."
+    },
+    {
+      "id": "anat_006",
+      "topic": "risk_reward",
+      "principle": "The best risk-reward holes offer a graduated scale of outcomes. The aggressive line might yield a 3 or a 7, while the conservative line consistently produces 5s.",
+      "application": "On risk-reward holes, ask yourself: what's my likely spread of outcomes for each strategy? If the safe route gives you 5 most of the time, that's better than alternating between 3 and 7."
+    },
+    {
+      "id": "anat_007",
+      "topic": "tee_strategy",
+      "principle": "Doglegs are shaped to reward a specific tee shot. The inside of the dogleg offers a shorter approach but requires a precise drive; the outside is safer but longer in.",
+      "application": "On doglegs, aim for the outside of the turn unless you're confident in the required tee shot shape. The extra 20 yards of approach is a smaller penalty than being in the trees."
+    },
+    {
+      "id": "anat_008",
+      "topic": "par3_strategy",
+      "principle": "Par-3 greens are typically the most heavily defended on the course. Architects use bunkers, slopes, and false fronts to punish anything less than a well-struck shot to the correct spot.",
+      "application": "On par 3s, identify the safe zone on the green — usually the largest, flattest area — and aim there. Pin-hunting on a par 3 with deep bunkers is a recipe for bogey or worse."
+    },
+    {
+      "id": "anat_009",
+      "topic": "par5_strategy",
+      "principle": "Par 5s are designed in three segments, each presenting a distinct strategic choice. The second shot determines whether you're playing for birdie, par, or simply trying to avoid trouble.",
+      "application": "On your second shot of a par 5, choose your target based on what leaves the simplest third shot. Sometimes that's 100 yards out in the fairway, not 30 yards out in the rough."
+    },
+    {
+      "id": "anat_010",
+      "topic": "course_management",
+      "principle": "Elevation changes dramatically alter effective distances. Uphill shots play longer and stop faster; downhill shots fly farther and release more on landing.",
+      "application": "Add roughly one club for every 10 yards of uphill elevation change, and subtract one club for significant downhill shots. Factor elevation before club selection, not after."
+    },
+    {
+      "id": "anat_011",
+      "topic": "wind_weather",
+      "principle": "Holes routed into the prevailing wind are designed to be played shorter and more conservatively. The architect accounts for wind in the hole's difficulty rating.",
+      "application": "Into the wind, take more club than you think and swing easy. A smooth swing into wind produces a lower, more penetrating flight that holds its line better than a hard swing."
+    },
+    {
+      "id": "anat_012",
+      "topic": "scoring",
+      "principle": "Every course has 'birdie holes' and 'bogey holes' built into its design. The key to scoring is capitalizing on the easier holes while limiting damage on the hard ones.",
+      "application": "Identify the 3-4 easiest holes on the course and commit to aggressive play there. On the toughest holes, shift to a par-is-a-great-score mindset."
+    },
+    {
+      "id": "anat_013",
+      "topic": "mental_game",
+      "principle": "Optical illusions are a core tool of golf architecture. Bunkers can make fairways look narrower, mounding can hide safe landing areas, and false fronts can make greens seem shallow.",
+      "application": "Trust your yardage book and rangefinder over your eyes. What you see from the tee or fairway is often deliberately distorted by the architect to create doubt."
+    },
+    {
+      "id": "anat_014",
+      "topic": "hazard_placement",
+      "principle": "Greenside bunkers are positioned to protect the most difficult pin locations. The side of the green without a bunker usually has the most accessible pin positions.",
+      "application": "When the pin is near a greenside bunker, play to the opposite side of the green. The putt will be longer but your miss won't end up in sand."
+    },
+    {
+      "id": "anat_015",
+      "topic": "risk_reward",
+      "principle": "Heroic design asks you to bite off as much of a hazard as you dare, with more reward for a bolder line. The bail-out area is always available but leaves a harder next shot.",
+      "application": "On heroic holes, choose your line based on what you can actually carry, not what you hope to carry. Each extra yard of hazard you challenge should offer a clear reward."
+    }
+  ]
+}
