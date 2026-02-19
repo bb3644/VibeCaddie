@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { InfoBanner } from "@/components/ui/info-banner";
 import { CourseSearch } from "@/components/course/course-search";
 import { CourseList } from "@/components/course/course-list";
 import type { Course } from "@/lib/db/types";
@@ -25,10 +26,10 @@ export default function CoursesPage() {
           setAllCourses(data);
           setDisplayed(data);
         } else {
-          setError("Failed to load courses.");
+          setError("Couldn't load courses right now.");
         }
       } catch {
-        setError("Something went wrong. Please try again.");
+        setError("Something went wrong. Give it another try.");
       } finally {
         setLoading(false);
       }
@@ -36,14 +37,12 @@ export default function CoursesPage() {
     load();
   }, []);
 
-  // 搜索结果回调（搜索结果不含 tee_count，补 0）
   const handleSearchResults = useCallback((courses: Course[]) => {
     setIsSearching(true);
     const withCount = courses.map((c) => ({ ...c, tee_count: 0 }));
     setDisplayed(withCount);
   }, []);
 
-  // 清除搜索，恢复全量列表
   const handleClearSearch = useCallback(() => {
     setIsSearching(false);
     setDisplayed(allCourses);
@@ -76,9 +75,16 @@ export default function CoursesPage() {
       <div>
         <h1 className="text-[1.875rem] font-semibold text-text">Courses</h1>
         <p className="text-[0.9375rem] text-secondary mt-1">
-          You&apos;re helping build the course guide for everyone.
+          Courses shared by everyone who plays here.
         </p>
       </div>
+
+      <InfoBanner>
+        Courses are shared. Anyone can add a course, fill in tees, mark
+        hazards, and note what they know about each hole. The more players
+        contribute, the better your caddie plan gets. Tap a course to add
+        what you know.
+      </InfoBanner>
 
       <CourseSearch
         onResults={handleSearchResults}

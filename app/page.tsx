@@ -3,6 +3,11 @@ import { getServerSession } from "next-auth";
 import Link from "next/link";
 
 export default async function Home() {
+  // TODO: 移除 preview bypass
+  if (process.env.SKIP_AUTH === "true") {
+    redirect("/dashboard");
+  }
+
   const session = await getServerSession();
 
   if (session) {

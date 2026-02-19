@@ -10,7 +10,8 @@ export default function NewCoursePage() {
           Add a Course
         </h1>
         <p className="text-[0.9375rem] text-secondary mt-1">
-          You only need a scorecard or memory. Approximate distances are fine.
+          Add a course everyone can use. Pick the tees you play — others can add
+          theirs later. You can fill in hole details and hazards after creating.
         </p>
       </div>
 

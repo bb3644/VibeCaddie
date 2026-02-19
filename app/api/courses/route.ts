@@ -6,6 +6,14 @@ import { normalizeName } from "@/lib/services/course";
 /** GET /api/courses — 列出所有球场（含 tee 数量） */
 export async function GET() {
   try {
+    // TODO: 移除 preview mock
+    if (process.env.SKIP_AUTH === "true") {
+      return NextResponse.json([
+        { id: "demo-c1", name: "Pebble Beach Golf Links", location_text: "Pebble Beach, CA", tee_count: 4 },
+        { id: "demo-c2", name: "Torrey Pines South", location_text: "La Jolla, CA", tee_count: 3 },
+        { id: "demo-c3", name: "Bethpage Black", location_text: "Farmingdale, NY", tee_count: 3 },
+      ]);
+    }
     await getUserId();
     const courses = await listCourses();
     return NextResponse.json(courses);
@@ -23,7 +31,6 @@ export async function GET() {
 /** POST /api/courses — 创建球场（自动查重） */
 export async function POST(request: NextRequest) {
   try {
-    await getUserId();
     const body = await request.json();
     const { name, location_text, force } = body as {
       name: string;
@@ -37,6 +44,23 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // TODO: 移除 preview mock
+    if (process.env.SKIP_AUTH === "true") {
+      const mockId = `preview-${Date.now()}`;
+      return NextResponse.json(
+        {
+          id: mockId,
+          name: name.trim(),
+          location_text: location_text?.trim() || null,
+          course_note: null,
+          created_at: new Date().toISOString(),
+        },
+        { status: 201 }
+      );
+    }
+
+    await getUserId();
 
     // 查重：用标准化名称搜索相似球场
     if (!force) {

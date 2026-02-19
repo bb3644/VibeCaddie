@@ -14,12 +14,14 @@ interface DashboardData {
     played_date: string;
     total_score: number | null;
     fw_count: number;
+    insight?: string;
   }>;
   trends: {
     total_rounds: number;
     avg_score_last5: number | null;
     fw_rate_last5: number | null;
   } | null;
+  insights?: string[];
 }
 
 export default function DashboardPage() {
@@ -35,10 +37,10 @@ export default function DashboardPage() {
           const json = (await res.json()) as DashboardData;
           setData(json);
         } else {
-          setError("Failed to load dashboard data.");
+          setError("Couldn't load your dashboard right now.");
         }
       } catch {
-        setError("Something went wrong. Please try again.");
+        setError("Something went wrong. Give it another try.");
       } finally {
         setLoading(false);
       }
@@ -82,7 +84,9 @@ export default function DashboardPage() {
 
       <RecentRounds rounds={data?.recent_rounds ?? []} />
 
-      {data?.trends && <TrendsCard trends={data.trends} />}
+      {data?.trends && (
+        <TrendsCard trends={data.trends} insights={data.insights} />
+      )}
     </div>
   );
 }

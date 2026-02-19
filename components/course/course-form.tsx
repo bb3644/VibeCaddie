@@ -7,25 +7,24 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { SectionTitle } from "@/components/ui/section-title";
 import { DuplicateWarning } from "./duplicate-warning";
-import type { Course } from "@/lib/db/types";
+import type { Course, CourseTee } from "@/lib/db/types";
 
-const TEE_COLORS = [
-  { value: "", label: "Select color" },
-  { value: "White", label: "White" },
-  { value: "Blue", label: "Blue" },
-  { value: "Red", label: "Red" },
-  { value: "Gold", label: "Gold" },
-  { value: "Black", label: "Black" },
+const TEE_OPTIONS = [
+  { value: "", label: "Select tee" },
+  { value: "White", label: "White Tee" },
+  { value: "Blue", label: "Blue Tee" },
+  { value: "Red", label: "Red Tee" },
+  { value: "Gold", label: "Gold Tee" },
+  { value: "Black", label: "Black Tee" },
 ];
 
 interface TeeInput {
-  tee_name: string;
   tee_color: string;
   par_total: string;
 }
 
 function emptyTee(): TeeInput {
-  return { tee_name: "", tee_color: "", par_total: "" };
+  return { tee_color: "", par_total: "" };
 }
 
 /** 球场创建表单：名称 + 位置 + tee 列表 */
@@ -56,8 +55,8 @@ export function CourseForm() {
   // 校验 tee 数据
   function validateTees(): boolean {
     for (const tee of tees) {
-      if (!tee.tee_name.trim()) {
-        setError("Each tee needs a name.");
+      if (!tee.tee_color) {
+        setError("Each tee needs a color.");
         return false;
       }
       const par = parseInt(tee.par_total, 10);
@@ -105,23 +104,36 @@ export function CourseForm() {
 
       const course = (await courseRes.json()) as Course;
 
-      // 2. 创建所有 tee
-      await Promise.all(
+      // 2. 创建所有 tee（color 即 name）
+      const teeResponses = await Promise.all(
         tees.map((tee) =>
           fetch(`/api/courses/${course.id}/tees`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              tee_name: tee.tee_name.trim(),
-              tee_color: tee.tee_color || undefined,
+              tee_name: tee.tee_color,
+              tee_color: tee.tee_color,
               par_total: parseInt(tee.par_total, 10),
             }),
           })
         )
       );
 
-      // 3. 跳转到球场详情
-      router.push(`/courses/${course.id}`);
+      // 3. 跳转到第一个 tee 的 holes 编辑页，带上 course 信息
+      const firstTeeRes = teeResponses[0];
+      if (firstTeeRes && firstTeeRes.ok) {
+        const firstTee = (await firstTeeRes.json()) as CourseTee;
+        const qs = new URLSearchParams({
+          course: name.trim(),
+          tee: tees[0].tee_color,
+          ...(location.trim() ? { loc: location.trim() } : {}),
+        });
+        router.push(
+          `/courses/${course.id}/tees/${firstTee.id}/holes?${qs.toString()}`
+        );
+      } else {
+        router.push(`/courses/${course.id}`);
+      }
     } catch {
       setError("Something went wrong. Please try again.");
       setSubmitting(false);
@@ -176,19 +188,13 @@ export function CourseForm() {
                 </button>
               )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <Input
-                label="Tee Name"
-                value={tee.tee_name}
-                onChange={(v) => updateTee(idx, "tee_name", v)}
-                placeholder="e.g. White"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Select
-                label="Color"
+                label="Tee"
                 value={tee.tee_color}
                 onChange={(v) => updateTee(idx, "tee_color", v)}
-                options={TEE_COLORS}
-                placeholder="Select color"
+                options={TEE_OPTIONS}
+                placeholder="Select tee"
               />
               <Input
                 label="Par Total"

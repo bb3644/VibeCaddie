@@ -6,6 +6,27 @@ import { generateBriefing } from "@/lib/services/briefing";
 /** GET /api/briefing — 获取球员所有简报列表 */
 export async function GET() {
   try {
+    // TODO: 移除 preview mock
+    if (process.env.SKIP_AUTH === "true") {
+      return NextResponse.json([
+        {
+          id: "demo-b1",
+          course_tee_id: "demo-t1",
+          play_date: "2025-06-20",
+          course_name: "Pebble Beach Golf Links",
+          tee_name: "White",
+          created_at: "2025-06-19T10:00:00Z",
+        },
+        {
+          id: "demo-b2",
+          course_tee_id: "demo-t2",
+          play_date: "2025-06-22",
+          course_name: "Torrey Pines South",
+          tee_name: "Blue",
+          created_at: "2025-06-21T08:00:00Z",
+        },
+      ]);
+    }
     const userId = await getUserId();
     const briefings = await getPlayerBriefings(userId);
     return NextResponse.json(briefings);

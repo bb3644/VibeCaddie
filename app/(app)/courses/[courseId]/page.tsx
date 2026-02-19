@@ -1,22 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SectionTitle } from "@/components/ui/section-title";
+import { InfoBanner } from "@/components/ui/info-banner";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import type { Course, CourseTee } from "@/lib/db/types";
 
-const TEE_COLORS = [
-  { value: "", label: "Select color" },
-  { value: "White", label: "White" },
-  { value: "Blue", label: "Blue" },
-  { value: "Red", label: "Red" },
-  { value: "Gold", label: "Gold" },
-  { value: "Black", label: "Black" },
+const TEE_OPTIONS = [
+  { value: "", label: "Select tee" },
+  { value: "White", label: "White Tee" },
+  { value: "Blue", label: "Blue Tee" },
+  { value: "Red", label: "Red Tee" },
+  { value: "Gold", label: "Gold Tee" },
+  { value: "Black", label: "Black Tee" },
 ];
 
 /** tee 颜色对应的圆点色 */
@@ -35,15 +36,18 @@ interface CourseDetail extends Course {
 export default function CourseDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const courseId = params.courseId as string;
+  const justFinished = searchParams.get("done") === "1";
+  const finishedCourseName = searchParams.get("course") ?? "";
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
+  const [golferName, setGolferName] = useState("");
 
   // 添加 tee 的表单状态
   const [showAddTee, setShowAddTee] = useState(false);
-  const [teeName, setTeeName] = useState("");
   const [teeColor, setTeeColor] = useState("");
   const [parTotal, setParTotal] = useState("");
   const [addingTee, setAddingTee] = useState(false);
@@ -52,12 +56,21 @@ export default function CourseDetailPage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/courses/${courseId}`);
-        if (res.ok) {
-          const data = (await res.json()) as CourseDetail;
+        const [courseRes, profileRes] = await Promise.all([
+          fetch(`/api/courses/${courseId}`),
+          justFinished ? fetch("/api/profile") : Promise.resolve(null),
+        ]);
+
+        if (courseRes.ok) {
+          const data = (await courseRes.json()) as CourseDetail;
           setCourse(data);
-        } else if (res.status === 404) {
+        } else if (courseRes.status === 404) {
           router.push("/courses");
+        }
+
+        if (profileRes?.ok) {
+          const profile = await profileRes.json();
+          setGolferName(profile.name ?? "");
         }
       } catch {
         setFetchError("Something went wrong. Please try again.");
@@ -66,12 +79,12 @@ export default function CourseDetailPage() {
       }
     }
     load();
-  }, [courseId, router]);
+  }, [courseId, router, justFinished]);
 
   async function handleAddTee() {
     setTeeError("");
-    if (!teeName.trim()) {
-      setTeeError("Tee name is required.");
+    if (!teeColor) {
+      setTeeError("Pick a tee color.");
       return;
     }
     const par = parseInt(parTotal, 10);
@@ -86,8 +99,8 @@ export default function CourseDetailPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tee_name: teeName.trim(),
-          tee_color: teeColor || undefined,
+          tee_name: teeColor,
+          tee_color: teeColor,
           par_total: par,
         }),
       });
@@ -97,8 +110,6 @@ export default function CourseDetailPage() {
         setCourse((prev) =>
           prev ? { ...prev, tees: [...prev.tees, newTee] } : prev
         );
-        // 重置表单
-        setTeeName("");
         setTeeColor("");
         setParTotal("");
         setShowAddTee(false);
@@ -137,6 +148,29 @@ export default function CourseDetailPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* 完成感谢 */}
+      {justFinished && (
+        <div className="rounded-lg bg-accent/10 border border-accent/20 px-5 py-4">
+          <p className="text-[1.125rem] font-semibold text-accent">
+            Nice one{golferName ? `, ${golferName}` : ""}!
+          </p>
+          <p className="text-[0.875rem] text-text mt-1">
+            {finishedCourseName
+              ? `${finishedCourseName} is looking better already.`
+              : "Course info saved."}{" "}
+            Every detail you add helps the whole crew play smarter.
+          </p>
+        </div>
+      )}
+
+      {/* 返回链接 */}
+      <Link
+        href="/courses"
+        className="text-[0.8125rem] text-accent hover:underline self-start"
+      >
+        &larr; All courses
+      </Link>
+
       {/* 球场名称和位置 */}
       <div>
         <h1 className="text-[1.875rem] font-semibold text-text">
@@ -149,6 +183,13 @@ export default function CourseDetailPage() {
         )}
       </div>
 
+      {/* 协作说明 */}
+      <InfoBanner>
+        Shared course — anyone who plays here can add tees, fill in hole
+        details, and mark hazards. The more players contribute, the smarter
+        your caddie plan becomes.
+      </InfoBanner>
+
       {/* 球场笔记 */}
       {course.course_note && (
         <Card>
@@ -159,9 +200,12 @@ export default function CourseDetailPage() {
       {/* Tee 列表 */}
       <div className="flex flex-col gap-3">
         <SectionTitle>Tees</SectionTitle>
+        <p className="text-[0.8125rem] text-secondary -mt-1">
+          Add the tees you play. Others can add theirs too.
+        </p>
         {course.tees.length === 0 && (
-          <p className="text-[0.9375rem] text-secondary">
-            No tees added yet.
+          <p className="text-[0.9375rem] text-secondary italic">
+            No tees added yet — be the first.
           </p>
         )}
         {course.tees.map((tee) => (
@@ -174,52 +218,36 @@ export default function CourseDetailPage() {
               )}
               <div className="flex flex-col">
                 <span className="text-[0.9375rem] font-medium text-text">
-                  {tee.tee_name}
+                  {tee.tee_name} Tee
                 </span>
                 <span className="text-[0.8125rem] text-secondary">
                   Par {tee.par_total}
                 </span>
               </div>
             </div>
-            {/* Edit Holes 链接（Task 8 会创建该页面） */}
             <button
               onClick={() =>
                 router.push(`/courses/${courseId}/tees/${tee.id}/holes`)
               }
               className="text-[0.8125rem] text-accent font-medium hover:underline cursor-pointer"
             >
-              Edit Holes
+              Holes &amp; Hazards
             </button>
           </Card>
         ))}
       </div>
 
       {/* 添加 Tee */}
-      {/* 创建 Briefing 快捷入口 */}
-      {course.tees.length > 0 && (
-        <Link href="/briefing">
-          <Button variant="secondary" className="w-full">
-            Create Briefing for This Course
-          </Button>
-        </Link>
-      )}
-
       {showAddTee ? (
         <div className="flex flex-col gap-3 p-4 rounded-lg border border-divider bg-white">
-          <SectionTitle>New Tee</SectionTitle>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Input
-              label="Tee Name"
-              value={teeName}
-              onChange={setTeeName}
-              placeholder="e.g. White"
-            />
+          <SectionTitle>Add a Tee</SectionTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Select
-              label="Color"
+              label="Tee"
               value={teeColor}
               onChange={setTeeColor}
-              options={TEE_COLORS}
-              placeholder="Select color"
+              options={TEE_OPTIONS}
+              placeholder="Select tee"
             />
             <Input
               label="Par Total"
@@ -251,6 +279,15 @@ export default function CourseDetailPage() {
         <Button variant="secondary" onClick={() => setShowAddTee(true)}>
           + Add Tee
         </Button>
+      )}
+
+      {/* 计划一轮的快捷入口 */}
+      {course.tees.length > 0 && (
+        <Link href="/briefing">
+          <Button variant="secondary" className="w-full">
+            Plan a Round Here
+          </Button>
+        </Link>
       )}
     </div>
   );

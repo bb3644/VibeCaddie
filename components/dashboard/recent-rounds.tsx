@@ -11,13 +11,23 @@ interface RecentRound {
   played_date: string;
   total_score: number | null;
   fw_count: number;
+  /** calm caddie insight line, e.g. "Driver safe, most holes." */
+  insight?: string;
 }
 
 interface RecentRoundsProps {
   rounds: RecentRound[];
 }
 
-/** 格式化日期为 "Feb 15" 或 "Feb 15, 2025" 风格 */
+/** 根据 round 数据生成 calm caddie insight */
+function roundInsight(round: RecentRound): string {
+  if (round.fw_count >= 10) return "Driver safe, most holes.";
+  if (round.fw_count >= 7) return "Good drives, stayed out of trouble.";
+  if (round.fw_count >= 4) return "A few fairways missed — safer club next time.";
+  return "Three wood plan followed.";
+}
+
+/** 格式化日期 */
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
@@ -38,7 +48,7 @@ export function RecentRounds({ rounds }: RecentRoundsProps) {
       {rounds.length === 0 ? (
         <Card>
           <p className="text-center text-secondary text-[0.9375rem] py-6">
-            No rounds yet. Play a round and record it here.
+            No rounds yet. Play a round and come back to recap.
           </p>
         </Card>
       ) : (
@@ -56,11 +66,11 @@ export function RecentRounds({ rounds }: RecentRoundsProps) {
                       {round.tee_name && " · "}
                       {formatDate(round.played_date)}
                     </p>
+                    <p className="text-[0.75rem] text-secondary/70 mt-1 italic">
+                      {round.insight ?? roundInsight(round)}
+                    </p>
                   </div>
                   <div className="flex items-center gap-3 text-right">
-                    <span className="text-[0.8125rem] text-secondary">
-                      {round.fw_count} FW
-                    </span>
                     <span className="text-[1.25rem] font-semibold text-text min-w-[2.5rem] text-right">
                       {round.total_score ?? "—"}
                     </span>

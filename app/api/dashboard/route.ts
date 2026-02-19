@@ -6,6 +6,25 @@ import { getPlayerRounds, getRoundHoles } from "@/lib/db/rounds";
 /** GET /api/dashboard — 获取首页仪表盘聚合数据 */
 export async function GET() {
   try {
+    // TODO: 移除 preview mock（临时用于预览）
+    if (process.env.SKIP_AUTH === "true") {
+      return NextResponse.json({
+        profile: { name: "Golfer" },
+        recent_rounds: [
+          { id: "demo-1", course_name: "Pebble Beach", tee_name: "White", played_date: "2025-06-15", total_score: 89, fw_count: 8, insight: "Driver safe, most holes." },
+          { id: "demo-2", course_name: "Torrey Pines South", tee_name: "Blue", played_date: "2025-06-10", total_score: 92, fw_count: 6, insight: "A few fairways missed — safer club helped." },
+          { id: "demo-3", course_name: "Bethpage Black", tee_name: "White", played_date: "2025-06-05", total_score: 95, fw_count: 7, insight: "Three wood plan followed." },
+        ],
+        trends: { total_rounds: 12, avg_score_last5: 91.4, fw_rate_last5: 52.8 },
+        insights: [
+          "You've been safer off the tee lately.",
+          "Drive penalties are decreasing.",
+          "Hole 7 still brings trouble.",
+          "Control clubs working well.",
+        ],
+      });
+    }
+
     const userId = await getUserId();
 
     // 并行获取 profile 和 rounds

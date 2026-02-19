@@ -12,6 +12,11 @@ export async function GET(
   context: RouteContext
 ) {
   try {
+    // TODO: 移除 preview mock
+    if (process.env.SKIP_AUTH === "true") {
+      return NextResponse.json([]);
+    }
+
     await getUserId();
     const { teeId } = await context.params;
     const holes = await getCourseHoles(teeId);
@@ -33,7 +38,6 @@ export async function PUT(
   context: RouteContext
 ) {
   try {
-    await getUserId();
     const { teeId } = await context.params;
     const body = await request.json();
     const { holes } = body as {
@@ -51,6 +55,21 @@ export async function PUT(
         { status: 400 }
       );
     }
+
+    // TODO: 移除 preview mock
+    if (process.env.SKIP_AUTH === "true") {
+      const mockResults = holes.map((h) => ({
+        id: `preview-hole-${h.hole_number}`,
+        course_tee_id: teeId,
+        hole_number: h.hole_number,
+        par: h.par,
+        yardage: h.yardage,
+        hole_note: h.hole_note || null,
+      }));
+      return NextResponse.json(mockResults);
+    }
+
+    await getUserId();
 
     // 逐一 upsert（利用 ON CONFLICT）
     const results = await Promise.all(

@@ -11,6 +11,7 @@ const TOTAL_HOLES = 18;
 interface HoleState {
   par: number;
   yardage: number;
+  si: number;
   holeNote: string;
   /** 数据库中的 ID，未保存时为 null */
   holeId: string | null;
@@ -21,6 +22,7 @@ function defaultHoles(): HoleState[] {
   return Array.from({ length: TOTAL_HOLES }, () => ({
     par: 4,
     yardage: 0,
+    si: 0,
     holeNote: "",
     holeId: null,
     hazards: [],
@@ -30,14 +32,14 @@ function defaultHoles(): HoleState[] {
 interface HoleEditorProps {
   courseId: string;
   teeId: string;
+  onFinish?: () => void;
 }
 
-/** 球洞编辑器：18洞列表 + Quick Fill + Save All */
-export function HoleEditor({ courseId, teeId }: HoleEditorProps) {
+/** 球洞编辑器：18洞列表 + Save All */
+export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
   const [holes, setHoles] = useState<HoleState[]>(defaultHoles);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [quickFill, setQuickFill] = useState("");
   const [feedback, setFeedback] = useState("");
 
   // 加载已有球洞数据
@@ -59,6 +61,7 @@ export function HoleEditor({ courseId, teeId }: HoleEditorProps) {
           merged[idx] = {
             par: dh.par,
             yardage: dh.yardage,
+            si: (dh as CourseHole & { si?: number }).si ?? 0,
             holeNote: dh.hole_note ?? "",
             holeId: dh.id,
             hazards: [],
@@ -97,27 +100,6 @@ export function HoleEditor({ courseId, teeId }: HoleEditorProps) {
     loadHoles();
   }, [loadHoles]);
 
-  // Quick Fill：粘贴逗号分隔的 par 值
-  function handleQuickFill() {
-    const pars = quickFill
-      .split(/[,，\s]+/)
-      .map((s) => parseInt(s.trim(), 10))
-      .filter((n) => !isNaN(n));
-
-    if (pars.length === 0) return;
-
-    setHoles((prev) => {
-      const next = [...prev];
-      for (let i = 0; i < Math.min(pars.length, TOTAL_HOLES); i++) {
-        next[i] = { ...next[i], par: pars[i] };
-      }
-      return next;
-    });
-    setQuickFill("");
-    setFeedback(`Filled ${Math.min(pars.length, TOTAL_HOLES)} holes pars.`);
-    setTimeout(() => setFeedback(""), 2000);
-  }
-
   // Save All：批量 upsert
   async function handleSave() {
     setSaving(true);
@@ -128,6 +110,7 @@ export function HoleEditor({ courseId, teeId }: HoleEditorProps) {
         hole_number: i + 1,
         par: h.par,
         yardage: h.yardage,
+        si: h.si || undefined,
         hole_note: h.holeNote || undefined,
       }));
 
@@ -153,7 +136,7 @@ export function HoleEditor({ courseId, teeId }: HoleEditorProps) {
           }
           return next;
         });
-        setFeedback("All holes saved successfully!");
+        setFeedback("Saved!");
       } else {
         setFeedback("Failed to save. Please try again.");
       }
@@ -168,7 +151,7 @@ export function HoleEditor({ courseId, teeId }: HoleEditorProps) {
   // 更新单个洞
   function handleHoleChange(
     index: number,
-    data: { par: number; yardage: number; holeNote: string }
+    data: { par: number; yardage: number; si: number; holeNote: string }
   ) {
     setHoles((prev) => {
       const next = [...prev];
@@ -196,43 +179,18 @@ export function HoleEditor({ courseId, teeId }: HoleEditorProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Quick Fill + Save All */}
-      <Card>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1 flex gap-2">
-            <input
-              type="text"
-              value={quickFill}
-              onChange={(e) => setQuickFill(e.target.value)}
-              placeholder="Quick fill pars: 4,3,4,5,4,4,3,4,4..."
-              className="flex-1 rounded-md border border-divider px-3 py-2.5 text-[0.9375rem] text-text placeholder:text-secondary outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-            />
-            <Button
-              variant="secondary"
-              onClick={handleQuickFill}
-              disabled={!quickFill.trim()}
-            >
-              Fill
-            </Button>
-          </div>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save All"}
-          </Button>
-        </div>
-
-        {/* 反馈消息 */}
-        {feedback && (
-          <p
-            className={`mt-2 text-[0.8125rem] ${
-              feedback.includes("success") || feedback.includes("Filled")
-                ? "text-accent"
-                : "text-red-500"
-            }`}
-          >
-            {feedback}
-          </p>
-        )}
-      </Card>
+      {/* 反馈消息 */}
+      {feedback && (
+        <p
+          className={`text-[0.8125rem] ${
+            feedback.includes("Saved")
+              ? "text-accent"
+              : "text-red-500"
+          }`}
+        >
+          {feedback}
+        </p>
+      )}
 
       {/* 球洞列表 */}
       <Card className="!p-3">
@@ -242,6 +200,7 @@ export function HoleEditor({ courseId, teeId }: HoleEditorProps) {
             holeNumber={i + 1}
             par={hole.par}
             yardage={hole.yardage}
+            si={hole.si}
             holeNote={hole.holeNote}
             holeId={hole.holeId}
             hazards={hole.hazards}
@@ -251,11 +210,16 @@ export function HoleEditor({ courseId, teeId }: HoleEditorProps) {
         ))}
       </Card>
 
-      {/* 底部 Save */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? "Saving..." : "Save All"}
+      {/* 底部操作 */}
+      <div className="flex justify-end gap-3">
+        <Button variant="secondary" onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save"}
         </Button>
+        {onFinish && (
+          <Button onClick={onFinish}>
+            Finish
+          </Button>
+        )}
       </div>
     </div>
   );

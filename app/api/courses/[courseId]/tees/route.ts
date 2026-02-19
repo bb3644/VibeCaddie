@@ -33,7 +33,6 @@ export async function POST(
   context: RouteContext
 ) {
   try {
-    await getUserId();
     const { courseId } = await context.params;
     const body = await request.json();
     const { tee_name, tee_color, par_total } = body as {
@@ -54,6 +53,24 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    // TODO: 移除 preview mock
+    if (process.env.SKIP_AUTH === "true") {
+      const mockTeeId = `preview-tee-${Date.now()}`;
+      return NextResponse.json(
+        {
+          id: mockTeeId,
+          course_id: courseId,
+          tee_name: tee_name.trim(),
+          tee_color: tee_color?.trim() || null,
+          par_total,
+          created_at: new Date().toISOString(),
+        },
+        { status: 201 }
+      );
+    }
+
+    await getUserId();
 
     const tee = await createCourseTee({
       course_id: courseId,

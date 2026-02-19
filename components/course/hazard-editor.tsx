@@ -86,7 +86,7 @@ export function HazardEditor({
         {/* 未保存洞的提示 */}
         {!holeId && (
           <span className="text-[0.75rem] text-secondary/60 italic">
-            Save holes first to add hazards
+            Add hazards after saving.
           </span>
         )}
       </div>

@@ -53,7 +53,7 @@ export default function BriefingDetailPage() {
           onClick={() => router.push("/briefing")}
           className="text-accent text-[0.9375rem] font-medium hover:underline cursor-pointer"
         >
-          Create a new briefing
+          Plan a new round
         </button>
       </div>
     );

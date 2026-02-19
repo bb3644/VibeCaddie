@@ -46,3 +46,9 @@ firebase-debug.log
 
 # books (large binary files)
 books/
+
+# preview screenshots
+*.png
+
+# playwright MCP
+.playwright-mcp/

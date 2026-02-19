@@ -11,6 +11,16 @@ type RoundWithInfo = Round & {
   tee_name?: string;
 };
 
+/** 根据 round 数据生成 calm caddie insight */
+function roundInsight(round: RoundWithInfo): string {
+  const score = round.total_score;
+  if (!score) return "Round recorded.";
+  if (score <= 85) return "Solid round — game felt good.";
+  if (score <= 90) return "Good drives, stayed out of trouble.";
+  if (score <= 95) return "A few tricky holes, but kept it together.";
+  return "Tougher day — safer clubs next time.";
+}
+
 export default function RoundsListPage() {
   const [rounds, setRounds] = useState<RoundWithInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,10 +34,10 @@ export default function RoundsListPage() {
           const data = (await res.json()) as RoundWithInfo[];
           setRounds(data);
         } else {
-          setError("Failed to load rounds.");
+          setError("Couldn't load your rounds right now.");
         }
       } catch {
-        setError("Something went wrong. Please try again.");
+        setError("Something went wrong. Give it another try.");
       } finally {
         setLoading(false);
       }
@@ -65,18 +75,18 @@ export default function RoundsListPage() {
             My Rounds
           </h1>
           <p className="text-[0.9375rem] text-secondary mt-1">
-            Track your rounds and performance.
+            How your rounds have been going.
           </p>
         </div>
         <Link href="/rounds/new">
-          <Button>Enter New Round</Button>
+          <Button>Add Round Recap</Button>
         </Link>
       </div>
 
       {rounds.length === 0 ? (
         <Card>
           <p className="text-center text-secondary text-[0.9375rem] py-8">
-            No rounds recorded yet.
+            No rounds yet. Play a round and come back to recap.
           </p>
         </Card>
       ) : (
@@ -96,6 +106,9 @@ export default function RoundsListPage() {
                         month: "short",
                         day: "numeric",
                       })}
+                    </p>
+                    <p className="text-[0.75rem] text-secondary/70 mt-1 italic">
+                      {roundInsight(round)}
                     </p>
                   </div>
                   <div className="text-right">
