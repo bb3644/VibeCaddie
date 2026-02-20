@@ -1,7 +1,11 @@
 import { Pool, QueryResult } from 'pg';
 
+// Amplify Lambda + RDS：需要 SSL 但不验证自签名证书
+// 从 URL 中去掉 sslmode 参数，由 Pool config 显式控制
+const dbUrl = (process.env.DATABASE_URL ?? '').replace(/[?&]sslmode=[^&]*/g, '');
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: dbUrl,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
   max: 10,
 });
