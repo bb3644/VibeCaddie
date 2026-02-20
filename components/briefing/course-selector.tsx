@@ -24,8 +24,12 @@ function todayString(): string {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+interface CourseSelectorProps {
+  preselectedCourseId?: string;
+}
+
 /** 三步选择器：球场 -> Tee -> 日期 -> 生成 */
-export function CourseSelector() {
+export function CourseSelector({ preselectedCourseId }: CourseSelectorProps) {
   const router = useRouter();
 
   // 步骤 1：搜索并选择球场
@@ -33,6 +37,7 @@ export function CourseSelector() {
   const [searchResults, setSearchResults] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const preloadedRef = useRef(false);
 
   // 步骤 2：选择 tee
   const [tees, setTees] = useState<CourseTee[]>([]);
@@ -45,6 +50,36 @@ export function CourseSelector() {
   // 生成状态
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
+
+  // 预选球场
+  useEffect(() => {
+    if (!preselectedCourseId || preloadedRef.current) return;
+    preloadedRef.current = true;
+
+    async function preload() {
+      try {
+        const res = await fetch(`/api/courses/${preselectedCourseId}`);
+        if (res.ok) {
+          const data = await res.json();
+          const course: Course = {
+            id: data.id,
+            name: data.name,
+            location_text: data.location_text,
+            latitude: data.latitude,
+            longitude: data.longitude,
+            course_note: data.course_note,
+            created_at: data.created_at,
+          };
+          setSelectedCourse(course);
+          setQuery(course.name);
+          setTees(data.tees ?? []);
+        }
+      } catch {
+        // 预加载失败，用户手动搜索
+      }
+    }
+    preload();
+  }, [preselectedCourseId]);
 
   // 搜索球场（防抖 300ms）
   useEffect(() => {

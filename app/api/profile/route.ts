@@ -4,15 +4,6 @@ import { getPlayerProfile, upsertPlayerProfile } from "@/lib/db/players";
 
 export async function GET() {
   try {
-    // TODO: 移除 preview mock
-    if (process.env.SKIP_AUTH === "true") {
-      return NextResponse.json({
-        id: "preview-user",
-        name: "Golfer",
-        handicap_index: 18.2,
-        home_course: "Pebble Beach Golf Links",
-      });
-    }
     const userId = await getUserId();
     const profile = await getPlayerProfile(userId);
     return NextResponse.json(profile);

@@ -1,8 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { CourseSelector } from "@/components/briefing/course-selector";
 
-export default function NewBriefingPage() {
+function BriefingContent() {
+  const searchParams = useSearchParams();
+  const preselectedCourseId = searchParams.get("courseId") ?? undefined;
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -14,7 +19,21 @@ export default function NewBriefingPage() {
         </p>
       </div>
 
-      <CourseSelector />
+      <CourseSelector preselectedCourseId={preselectedCourseId} />
     </div>
+  );
+}
+
+export default function NewBriefingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20">
+          <p className="text-secondary text-[0.9375rem]">Loading...</p>
+        </div>
+      }
+    >
+      <BriefingContent />
+    </Suspense>
   );
 }

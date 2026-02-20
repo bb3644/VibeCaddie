@@ -4,14 +4,6 @@ import { getPlayerBagClubs, upsertPlayerBagClub } from "@/lib/db/players";
 
 export async function GET() {
   try {
-    // TODO: 移除 preview mock
-    if (process.env.SKIP_AUTH === "true") {
-      return NextResponse.json([
-        { id: "b1", club_type: "Driver", brand: "TaylorMade", model: "Stealth 2" },
-        { id: "b2", club_type: "7 Iron", brand: "Titleist", model: "T200" },
-        { id: "b3", club_type: "Putter", brand: "Scotty Cameron", model: "Newport 2" },
-      ]);
-    }
     const userId = await getUserId();
     const clubs = await getPlayerBagClubs(userId);
     return NextResponse.json(clubs);

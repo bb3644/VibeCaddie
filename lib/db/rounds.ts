@@ -65,17 +65,19 @@ export async function upsertRoundHole(data: {
   hole_number: number;
   tee_club: string;
   tee_result: 'FW' | 'L' | 'R' | 'PEN';
+  clubs_used?: string[];
   score?: number;
   putts?: number;
   gir?: boolean;
 }): Promise<RoundHole> {
   const result = await query<RoundHole>(
-    `INSERT INTO round_holes (round_id, hole_number, tee_club, tee_result, score, putts, gir)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO round_holes (round_id, hole_number, tee_club, tee_result, clubs_used, score, putts, gir)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      ON CONFLICT (round_id, hole_number)
      DO UPDATE SET
        tee_club = EXCLUDED.tee_club,
        tee_result = EXCLUDED.tee_result,
+       clubs_used = EXCLUDED.clubs_used,
        score = EXCLUDED.score,
        putts = EXCLUDED.putts,
        gir = EXCLUDED.gir
@@ -85,6 +87,7 @@ export async function upsertRoundHole(data: {
       data.hole_number,
       data.tee_club,
       data.tee_result,
+      data.clubs_used ?? null,
       data.score ?? null,
       data.putts ?? null,
       data.gir ?? null,

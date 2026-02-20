@@ -21,8 +21,8 @@ export function HazardEditor({
   const [showForm, setShowForm] = useState(false);
 
   async function handleAdd(data: {
-    side: HazardSide;
-    type: HazardType;
+    side?: HazardSide;
+    type?: HazardType;
     start_yards?: number;
     end_yards?: number;
     note?: string;

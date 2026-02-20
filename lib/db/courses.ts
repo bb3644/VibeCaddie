@@ -5,23 +5,20 @@ import { Course, CourseTee, CourseHole, HoleHazard } from './types';
  * 模糊搜索球场名称 (pg_trgm similarity)
  */
 export async function searchCourses(searchTerm: string): Promise<Course[]> {
-  // 去掉变音符号和特殊字符，方便匹配
   const normalized = searchTerm
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^\w\s]/g, '')
     .toLowerCase()
     .trim();
 
   const result = await query<Course>(
-    `SELECT id, name, location_text, latitude, longitude, course_note, created_at,
-       similarity(
-         lower(regexp_replace(regexp_replace(name, '[\u0300-\u036f]', '', 'g'), '[^\\w\\s]', '', 'g')),
-         $1
-       ) AS sim
+    `SELECT id, name, location_text, latitude, longitude, course_note, created_at
      FROM courses
-     WHERE similarity(lower(name), $1) > 0.3
-     ORDER BY sim DESC
+     WHERE lower(name) LIKE '%' || $1 || '%'
+        OR similarity(lower(name), $1) > 0.2
+     ORDER BY
+       CASE WHEN lower(name) LIKE '%' || $1 || '%' THEN 0 ELSE 1 END,
+       similarity(lower(name), $1) DESC
      LIMIT 10`,
     [normalized]
   );
@@ -154,15 +151,16 @@ export async function upsertCourseHole(data: {
   hole_number: number;
   par: number;
   yardage: number;
+  si?: number;
   hole_note?: string;
 }): Promise<CourseHole> {
   const result = await query<CourseHole>(
-    `INSERT INTO course_holes (course_tee_id, hole_number, par, yardage, hole_note)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO course_holes (course_tee_id, hole_number, par, yardage, si, hole_note)
+     VALUES ($1, $2, $3, $4, $5, $6)
      ON CONFLICT (course_tee_id, hole_number)
-     DO UPDATE SET par = EXCLUDED.par, yardage = EXCLUDED.yardage, hole_note = EXCLUDED.hole_note
+     DO UPDATE SET par = EXCLUDED.par, yardage = EXCLUDED.yardage, si = EXCLUDED.si, hole_note = EXCLUDED.hole_note
      RETURNING *`,
-    [data.course_tee_id, data.hole_number, data.par, data.yardage, data.hole_note ?? null]
+    [data.course_tee_id, data.hole_number, data.par, data.yardage, data.si ?? null, data.hole_note ?? null]
   );
   return result.rows[0];
 }
@@ -183,8 +181,8 @@ export async function getHoleHazards(courseHoleId: string): Promise<HoleHazard[]
  */
 export async function createHoleHazard(data: {
   course_hole_id: string;
-  side: 'L' | 'R' | 'C';
-  type: 'water' | 'bunker' | 'trees' | 'OOB';
+  side?: 'L' | 'R' | 'C' | null;
+  type?: 'water' | 'bunker' | 'trees' | 'OOB' | null;
   start_yards?: number;
   end_yards?: number;
   note?: string;

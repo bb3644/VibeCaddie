@@ -23,8 +23,8 @@ export interface HoleInput {
   par: number;
   yardage: number;
   hazards: Array<{
-    side: string;
-    type: string;
+    side: string | null;
+    type: string | null;
     start_yards: number | null;
     end_yards: number | null;
   }>;
@@ -54,19 +54,29 @@ export function getConfidence(roundsPlayed: number): Confidence {
  * 格式化hazard备注：类型首字母大写 + side小写映射 + 码数范围
  */
 function formatHazardNote(hazard: {
-  side: string;
-  type: string;
+  side: string | null;
+  type: string | null;
   start_yards: number | null;
   end_yards: number | null;
+  note?: string | null;
 }): string {
-  const type = hazard.type.charAt(0).toUpperCase() + hazard.type.slice(1).toLowerCase();
-  const sideMap: Record<string, string> = { R: 'right', L: 'left' };
-  const side = sideMap[hazard.side] ?? hazard.side.toLowerCase();
+  const parts: string[] = [];
 
-  if (hazard.start_yards !== null && hazard.end_yards !== null) {
-    return `${type} ${side} ${hazard.start_yards}-${hazard.end_yards}`;
+  if (hazard.type) {
+    parts.push(hazard.type.charAt(0).toUpperCase() + hazard.type.slice(1).toLowerCase());
   }
-  return `${type} ${side}`;
+  if (hazard.side) {
+    const sideMap: Record<string, string> = { R: 'right', L: 'left', C: 'center' };
+    parts.push(sideMap[hazard.side] ?? hazard.side.toLowerCase());
+  }
+  if (hazard.start_yards !== null && hazard.end_yards !== null) {
+    parts.push(`${hazard.start_yards}-${hazard.end_yards}`);
+  }
+  if (hazard.note) {
+    parts.push(hazard.note);
+  }
+
+  return parts.join(' ') || 'hazard';
 }
 
 /**

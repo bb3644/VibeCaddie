@@ -27,14 +27,15 @@ export interface CourseHole {
   hole_number: number;
   par: number;
   yardage: number;
+  si: number | null;
   hole_note: string | null;
 }
 
 export interface HoleHazard {
   id: string;
   course_hole_id: string;
-  side: 'L' | 'R' | 'C';
-  type: 'water' | 'bunker' | 'trees' | 'OOB';
+  side: 'L' | 'R' | 'C' | null;
+  type: 'water' | 'bunker' | 'trees' | 'OOB' | null;
   start_yards: number | null;
   end_yards: number | null;
   note: string | null;
@@ -94,6 +95,7 @@ export interface RoundHole {
   hole_number: number;
   tee_club: string;
   tee_result: 'FW' | 'L' | 'R' | 'PEN';
+  clubs_used: string[] | null;
   score: number | null;
   putts: number | null;
   gir: boolean | null;

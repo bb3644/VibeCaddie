@@ -1,14 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Button } from "@/components/ui/button";
-import type { PreRoundBriefing, CourseTee, Course } from "@/lib/db/types";
+import type { PreRoundBriefing } from "@/lib/db/types";
+
+interface BriefingWithCourseInfo extends PreRoundBriefing {
+  course_name?: string;
+  tee_name?: string;
+  course_id?: string;
+}
 
 interface BriefingDisplayProps {
-  briefing: PreRoundBriefing;
+  briefing: BriefingWithCourseInfo;
 }
 
 /** 渲染洞号圆形徽章 */
@@ -89,38 +94,8 @@ function BriefingText({ text }: { text: string }) {
 export function BriefingDisplay({ briefing }: BriefingDisplayProps) {
   const bj = briefing.briefing_json;
 
-  // 加载球场和 tee 信息用于副标题
-  const [courseName, setCourseName] = useState("");
-  const [teeName, setTeeName] = useState("");
-
-  useEffect(() => {
-    async function loadCourseInfo() {
-      try {
-        // 获取 tee 信息来取得 course_id
-        // 我们通过遍历球场列表来找到对应的 tee
-        const coursesRes = await fetch("/api/courses");
-        if (!coursesRes.ok) return;
-        const courses = (await coursesRes.json()) as Course[];
-
-        for (const course of courses) {
-          const detailRes = await fetch(`/api/courses/${course.id}`);
-          if (!detailRes.ok) continue;
-          const detail = await detailRes.json();
-          const tee = (detail.tees as CourseTee[])?.find(
-            (t) => t.id === briefing.course_tee_id
-          );
-          if (tee) {
-            setCourseName(course.name);
-            setTeeName(tee.tee_name);
-            break;
-          }
-        }
-      } catch {
-        // 加载失败不阻塞页面
-      }
-    }
-    loadCourseInfo();
-  }, [briefing.course_tee_id]);
+  const courseName = briefing.course_name ?? "";
+  const teeName = briefing.tee_name ?? "";
 
   const formattedDate = new Date(briefing.play_date + "T00:00:00").toLocaleDateString(
     "en-US",
@@ -138,7 +113,7 @@ export function BriefingDisplay({ briefing }: BriefingDisplayProps) {
           <p className="text-[0.9375rem] text-secondary mt-1">
             {courseName && teeName
               ? `${courseName} — ${teeName}`
-              : "Loading course info..."}
+              : "Course briefing"}
             {" "}&#183; {formattedDate}
           </p>
         </div>
@@ -228,7 +203,7 @@ export function BriefingDisplay({ briefing }: BriefingDisplayProps) {
       </Card>
 
       {/* 开始轮次快捷入口 */}
-      <Link href="/rounds/new">
+      <Link href={`/rounds/new?course_tee_id=${briefing.course_tee_id}&play_date=${briefing.play_date}`}>
         <Button variant="secondary" className="w-full">
           Start a Round
         </Button>

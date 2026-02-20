@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS course_holes (
   hole_number INT NOT NULL,
   par INT NOT NULL,
   yardage INT NOT NULL,
+  si INT,
   hole_note TEXT,
   UNIQUE(course_tee_id, hole_number)
 );
@@ -42,8 +43,8 @@ CREATE TABLE IF NOT EXISTS course_holes (
 CREATE TABLE IF NOT EXISTS hole_hazards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   course_hole_id UUID NOT NULL REFERENCES course_holes(id) ON DELETE CASCADE,
-  side TEXT NOT NULL CHECK (side IN ('L', 'R', 'C')),
-  type TEXT NOT NULL CHECK (type IN ('water', 'bunker', 'trees', 'OOB')),
+  side TEXT CHECK (side IN ('L', 'R', 'C')),
+  type TEXT CHECK (type IN ('water', 'bunker', 'trees', 'OOB')),
   start_yards INT,
   end_yards INT,
   note TEXT
@@ -105,6 +106,7 @@ CREATE TABLE IF NOT EXISTS round_holes (
   hole_number INT NOT NULL,
   tee_club TEXT NOT NULL,
   tee_result TEXT NOT NULL CHECK (tee_result IN ('FW', 'L', 'R', 'PEN')),
+  clubs_used TEXT[],
   score INT,
   putts INT,
   gir BOOLEAN,

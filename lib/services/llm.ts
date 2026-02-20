@@ -17,7 +17,7 @@ export async function callLLM(
     throw new Error('OPENROUTER_API_KEY is not configured');
   }
 
-  const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4-20250514';
+  const model = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-001';
 
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',

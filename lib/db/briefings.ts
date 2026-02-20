@@ -18,25 +18,43 @@ export async function createBriefing(
 }
 
 /**
- * 根据 ID 获取简报（校验 user_id）
+ * 根据 ID 获取简报（校验 user_id），JOIN 球场和 tee 名称
  */
 export async function getBriefingById(
   userId: string,
   briefingId: string
-): Promise<PreRoundBriefing | null> {
-  const result = await query<PreRoundBriefing>(
-    'SELECT * FROM pre_round_briefings WHERE id = $1 AND user_id = $2',
+): Promise<BriefingWithCourse | null> {
+  const result = await query<BriefingWithCourse>(
+    `SELECT b.*, c.name AS course_name, ct.tee_name, ct.course_id
+     FROM pre_round_briefings b
+     JOIN course_tees ct ON ct.id = b.course_tee_id
+     JOIN courses c ON c.id = ct.course_id
+     WHERE b.id = $1 AND b.user_id = $2`,
     [briefingId, userId]
   );
   return result.rows[0] ?? null;
 }
 
 /**
- * 获取球员的所有简报（按日期倒序）
+ * 简报 + 球场/tee 名称
  */
-export async function getPlayerBriefings(userId: string): Promise<PreRoundBriefing[]> {
-  const result = await query<PreRoundBriefing>(
-    'SELECT * FROM pre_round_briefings WHERE user_id = $1 ORDER BY play_date DESC',
+export interface BriefingWithCourse extends PreRoundBriefing {
+  course_name: string;
+  tee_name: string;
+  course_id: string;
+}
+
+/**
+ * 获取球员的所有简报（按日期倒序），JOIN 球场和 tee 名称
+ */
+export async function getPlayerBriefings(userId: string): Promise<BriefingWithCourse[]> {
+  const result = await query<BriefingWithCourse>(
+    `SELECT b.*, c.name AS course_name, ct.tee_name, ct.course_id
+     FROM pre_round_briefings b
+     JOIN course_tees ct ON ct.id = b.course_tee_id
+     JOIN courses c ON c.id = ct.course_id
+     WHERE b.user_id = $1
+     ORDER BY b.play_date DESC`,
     [userId]
   );
   return result.rows;

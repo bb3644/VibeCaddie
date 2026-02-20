@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { HoleRow } from "./hole-row";
+import { Scorecard } from "./scorecard";
 import type { CourseHole, HoleHazard } from "@/lib/db/types";
 
 const TOTAL_HOLES = 18;
@@ -179,6 +180,9 @@ export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* 记分卡汇总 */}
+      <Scorecard holes={holes} />
+
       {/* 反馈消息 */}
       {feedback && (
         <p

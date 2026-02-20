@@ -41,24 +41,25 @@ export async function POST(
     const { holeId } = await context.params;
     const body = await request.json();
     const { side, type, start_yards, end_yards, note } = body as {
-      side: "L" | "R" | "C";
-      type: "water" | "bunker" | "trees" | "OOB";
+      side?: "L" | "R" | "C";
+      type?: "water" | "bunker" | "trees" | "OOB";
       start_yards?: number;
       end_yards?: number;
       note?: string;
     };
 
-    if (!side || !type) {
+    // 至少要有 type 或 note
+    if (!type && !note?.trim()) {
       return NextResponse.json(
-        { error: "side and type are required" },
+        { error: "At least a type or note is required" },
         { status: 400 }
       );
     }
 
     const hazard = await createHoleHazard({
       course_hole_id: holeId,
-      side,
-      type,
+      side: side ?? null,
+      type: type ?? null,
       start_yards: start_yards ?? undefined,
       end_yards: end_yards ?? undefined,
       note: note?.trim() || undefined,

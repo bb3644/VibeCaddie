@@ -5,7 +5,7 @@ import { authOptions } from "./config";
 export async function getRequiredSession() {
   // TODO: 恢复 auth guard（临时关闭用于预览）
   if (process.env.SKIP_AUTH === "true") {
-    return { user: { id: "preview-user", name: "Preview User", email: "preview@example.com" } };
+    return { user: { id: "00000000-0000-0000-0000-000000000001", name: "Preview User", email: "preview@example.com" } };
   }
 
   const session = await getServerSession(authOptions);

@@ -51,6 +51,7 @@ export function HoleEntry({
 }: HoleEntryProps) {
   const [teeClub, setTeeClub] = useState<string>(initialData?.tee_club ?? "");
   const [teeResult, setTeeResult] = useState<string>(initialData?.tee_result ?? "");
+  const [clubsUsed, setClubsUsed] = useState<string[]>(initialData?.clubs_used ?? []);
   const [score, setScore] = useState<number>(initialData?.score ?? par);
   const [putts, setPutts] = useState<number>(initialData?.putts ?? 2);
   const [gir, setGir] = useState<boolean | null>(initialData?.gir ?? null);
@@ -62,6 +63,7 @@ export function HoleEntry({
   useEffect(() => {
     setTeeClub(initialData?.tee_club ?? "");
     setTeeResult(initialData?.tee_result ?? "");
+    setClubsUsed(initialData?.clubs_used ?? []);
     setScore(initialData?.score ?? par);
     setPutts(initialData?.putts ?? 2);
     setGir(initialData?.gir ?? null);
@@ -80,6 +82,7 @@ export function HoleEntry({
           hole_number: holeNumber,
           tee_club: teeClub,
           tee_result: teeResult,
+          clubs_used: clubsUsed.length > 0 ? clubsUsed : null,
           score,
           putts,
           gir,
@@ -93,7 +96,7 @@ export function HoleEntry({
     } catch {
       // 静默失败，下次切换洞时会重试
     }
-  }, [roundId, holeNumber, teeClub, teeResult, score, putts, gir, onSave]);
+  }, [roundId, holeNumber, teeClub, teeResult, clubsUsed, score, putts, gir, onSave]);
 
   // 监听所有输入变化，触发防抖保存
   useEffect(() => {
@@ -111,7 +114,7 @@ export function HoleEntry({
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     };
-  }, [teeClub, teeResult, score, putts, gir, autoSave]);
+  }, [teeClub, teeResult, clubsUsed, score, putts, gir, autoSave]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -125,9 +128,9 @@ export function HoleEntry({
         </p>
       </div>
 
-      {/* Tee Club 选择 */}
+      {/* Drive Club 选择 */}
       <div>
-        <p className="text-[0.875rem] font-medium text-text mb-2">Tee Club</p>
+        <p className="text-[0.875rem] font-medium text-text mb-2">Drive Club</p>
         <div className="grid grid-cols-5 sm:grid-cols-7 gap-2">
           {playerBagClubs.map((club) => (
             <button
@@ -150,9 +153,9 @@ export function HoleEntry({
         </div>
       </div>
 
-      {/* Tee Result 选择 */}
+      {/* Drive Result 选择 */}
       <div>
-        <p className="text-[0.875rem] font-medium text-text mb-2">Tee Result</p>
+        <p className="text-[0.875rem] font-medium text-text mb-2">Drive Result</p>
         <div className="grid grid-cols-4 gap-2">
           {TEE_RESULTS.map((result) => {
             const styles = RESULT_STYLES[result];
@@ -169,6 +172,47 @@ export function HoleEntry({
                 `}
               >
                 {result}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Clubs Used — 多选，记录这洞用了哪些球杆 */}
+      <div>
+        <p className="text-[0.875rem] font-medium text-text mb-2">
+          Clubs Used
+          {clubsUsed.length > 0 && (
+            <span className="text-secondary font-normal ml-1.5">
+              ({clubsUsed.length})
+            </span>
+          )}
+        </p>
+        <div className="grid grid-cols-5 sm:grid-cols-7 gap-2">
+          {playerBagClubs.map((club) => {
+            const isSelected = clubsUsed.includes(club);
+            return (
+              <button
+                key={club}
+                type="button"
+                onClick={() => {
+                  setClubsUsed((prev) =>
+                    isSelected
+                      ? prev.filter((c) => c !== club)
+                      : [...prev, club]
+                  );
+                }}
+                className={`
+                  min-h-[44px] rounded-lg border text-[0.875rem] font-medium
+                  transition-colors duration-150 cursor-pointer
+                  ${
+                    isSelected
+                      ? "bg-accent/15 text-accent border-accent/40"
+                      : "bg-white text-text border-divider hover:bg-bg"
+                  }
+                `}
+              >
+                {club}
               </button>
             );
           })}

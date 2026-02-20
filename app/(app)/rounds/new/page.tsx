@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PlannedRoundPicker } from "@/components/round/planned-round-picker";
 import { RoundSetup } from "@/components/round/round-setup";
 import { HoleEntry } from "@/components/round/hole-entry";
@@ -11,8 +11,13 @@ import type { CourseHole, RoundHole, PlayerBagClub } from "@/lib/db/types";
 
 type RecapMode = "pick" | "manual" | "entry";
 
-export default function NewRoundPage() {
+function NewRoundContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // URL 参数：从 briefing 页面跳转时自动传入
+  const urlCourseTeeId = searchParams.get("course_tee_id");
+  const urlPlayDate = searchParams.get("play_date");
 
   // 选择模式：pick（从 plan 中选）、manual（手动选球场）、entry（洞录入）
   const [mode, setMode] = useState<RecapMode>("pick");
@@ -91,6 +96,14 @@ export default function NewRoundPage() {
     },
     []
   );
+
+  // 从 URL 参数自动创建 round（从 briefing 页面跳转时）
+  const autoCreatedRef = useRef(false);
+  useEffect(() => {
+    if (!urlCourseTeeId || !urlPlayDate || autoCreatedRef.current) return;
+    autoCreatedRef.current = true;
+    handleSelectPlanned({ course_tee_id: urlCourseTeeId, play_date: urlPlayDate });
+  }, [urlCourseTeeId, urlPlayDate, handleSelectPlanned]);
 
   // 手动创建路径完成回调
   const handleManualCreated = useCallback(
@@ -243,5 +256,19 @@ export default function NewRoundPage() {
         onFinish={handleFinish}
       />
     </div>
+  );
+}
+
+export default function NewRoundPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20">
+          <p className="text-secondary text-[0.9375rem]">Loading...</p>
+        </div>
+      }
+    >
+      <NewRoundContent />
+    </Suspense>
   );
 }

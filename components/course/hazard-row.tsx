@@ -35,7 +35,9 @@ interface HazardDisplayProps {
 }
 
 export function HazardDisplay({ hazard, onDelete }: HazardDisplayProps) {
-  const label = `${TYPE_LABELS[hazard.type]} ${SIDE_LABELS[hazard.side]}`;
+  const typePart = hazard.type ? TYPE_LABELS[hazard.type] : "";
+  const sidePart = hazard.side ? SIDE_LABELS[hazard.side] : "";
+  const label = [typePart, sidePart].filter(Boolean).join(" ") || "Note";
   const yards =
     hazard.start_yards != null && hazard.end_yards != null
       ? ` ${hazard.start_yards}–${hazard.end_yards}`
@@ -78,8 +80,8 @@ export function HazardDisplay({ hazard, onDelete }: HazardDisplayProps) {
 
 interface HazardAddFormProps {
   onAdd: (data: {
-    side: HazardSide;
-    type: HazardType;
+    side?: HazardSide;
+    type?: HazardType;
     start_yards?: number;
     end_yards?: number;
     note?: string;
@@ -88,16 +90,18 @@ interface HazardAddFormProps {
 }
 
 export function HazardAddForm({ onAdd, onCancel }: HazardAddFormProps) {
-  const [side, setSide] = useState<HazardSide>("L");
-  const [type, setType] = useState<HazardType>("water");
+  const [side, setSide] = useState<HazardSide | null>(null);
+  const [type, setType] = useState<HazardType | null>(null);
   const [startYards, setStartYards] = useState("");
   const [endYards, setEndYards] = useState("");
   const [note, setNote] = useState("");
 
   function handleSubmit() {
+    // 至少要有 type 或 note
+    if (!type && !note.trim()) return;
     onAdd({
-      side,
-      type,
+      side: side ?? undefined,
+      type: type ?? undefined,
       start_yards: startYards ? parseInt(startYards, 10) : undefined,
       end_yards: endYards ? parseInt(endYards, 10) : undefined,
       note: note.trim() || undefined,
@@ -115,7 +119,7 @@ export function HazardAddForm({ onAdd, onCancel }: HazardAddFormProps) {
           {HAZARD_SIDES.map((s) => (
             <button
               key={s}
-              onClick={() => setSide(s)}
+              onClick={() => setSide(side === s ? null : s)}
               className={`
                 min-w-[44px] min-h-[36px] rounded-md px-2.5 py-1.5
                 text-[0.8125rem] font-medium transition-colors cursor-pointer
@@ -141,7 +145,7 @@ export function HazardAddForm({ onAdd, onCancel }: HazardAddFormProps) {
           {HAZARD_TYPES.map((t) => (
             <button
               key={t}
-              onClick={() => setType(t)}
+              onClick={() => setType(type === t ? null : t)}
               className={`
                 min-w-[44px] min-h-[36px] rounded-md px-2.5 py-1.5
                 text-[0.8125rem] font-medium transition-colors cursor-pointer

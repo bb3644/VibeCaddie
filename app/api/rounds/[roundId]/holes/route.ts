@@ -22,10 +22,11 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { hole_number, tee_club, tee_result, score, putts, gir } = body as {
+    const { hole_number, tee_club, tee_result, clubs_used, score, putts, gir } = body as {
       hole_number: number;
       tee_club: string;
       tee_result: "FW" | "L" | "R" | "PEN";
+      clubs_used?: string[];
       score?: number;
       putts?: number;
       gir?: boolean;
@@ -43,6 +44,7 @@ export async function PUT(
       hole_number,
       tee_club,
       tee_result,
+      clubs_used,
       score,
       putts,
       gir,

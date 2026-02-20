@@ -7,14 +7,6 @@ import {
 
 export async function GET() {
   try {
-    // TODO: 移除 preview mock
-    if (process.env.SKIP_AUTH === "true") {
-      return NextResponse.json([
-        { id: "d1", club_type: "Driver", carry_yards: 230 },
-        { id: "d2", club_type: "7 Iron", carry_yards: 155 },
-        { id: "d3", club_type: "PW", carry_yards: 120 },
-      ]);
-    }
     const userId = await getUserId();
     const distances = await getPlayerClubDistances(userId);
     return NextResponse.json(distances);

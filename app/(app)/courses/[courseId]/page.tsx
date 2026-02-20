@@ -209,7 +209,13 @@ export default function CourseDetailPage() {
           </p>
         )}
         {course.tees.map((tee) => (
-          <Card key={tee.id} className="flex items-center justify-between">
+          <Card
+            key={tee.id}
+            className="flex items-center justify-between cursor-pointer hover:border-accent/40 transition-colors"
+            onClick={() =>
+              router.push(`/courses/${courseId}/tees/${tee.id}/holes`)
+            }
+          >
             <div className="flex items-center gap-3">
               {tee.tee_color && COLOR_MAP[tee.tee_color] && (
                 <span
@@ -225,14 +231,9 @@ export default function CourseDetailPage() {
                 </span>
               </div>
             </div>
-            <button
-              onClick={() =>
-                router.push(`/courses/${courseId}/tees/${tee.id}/holes`)
-              }
-              className="text-[0.8125rem] text-accent font-medium hover:underline cursor-pointer"
-            >
-              Holes &amp; Hazards
-            </button>
+            <span className="text-[0.8125rem] text-accent font-medium">
+              Holes &amp; Hazards &rarr;
+            </span>
           </Card>
         ))}
       </div>
@@ -283,7 +284,7 @@ export default function CourseDetailPage() {
 
       {/* 计划一轮的快捷入口 */}
       {course.tees.length > 0 && (
-        <Link href="/briefing">
+        <Link href={`/briefing?courseId=${courseId}`}>
           <Button variant="secondary" className="w-full">
             Plan a Round Here
           </Button>
