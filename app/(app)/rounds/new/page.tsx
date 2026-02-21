@@ -151,16 +151,39 @@ function NewRoundContent() {
     setCurrentHole((h) => Math.min(courseHoles.length || 18, h + 1));
   }, [courseHoles.length]);
 
-  // 完成轮次（先保存当前洞）
+  // 完成轮次（保存所有未存的洞 + 当前洞）
   const handleFinish = useCallback(async () => {
     if (!roundId) return;
 
-    // 先保存当前洞
+    // 1. 先保存当前洞
     await holeEntryRef.current?.save();
 
+    // 2. 把所有本地暂存但未 API 保存的洞批量保存
+    const savePromises: Promise<void>[] = [];
+    for (const [num, local] of localHolesData.entries()) {
+      if (holesData.has(num)) continue; // 已有 API 数据，跳过
+      if (!local.tee_club || !local.tee_result) continue; // 数据不完整，跳过
+      savePromises.push(
+        fetch(`/api/rounds/${roundId}/holes`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            hole_number: local.hole_number,
+            tee_club: local.tee_club,
+            tee_result: local.tee_result,
+            clubs_used: local.clubs_used.length > 0 ? local.clubs_used : null,
+            score: local.score,
+            putts: local.putts,
+            gir: local.gir,
+          }),
+        }).then(() => {})
+      );
+    }
+    await Promise.all(savePromises);
+
+    // 3. 计算总杆数
     let totalScore = 0;
     let hasScores = false;
-    // 优先用 API 数据，否则用本地暂存
     const allHoleNums = new Set([...holesData.keys(), ...localHolesData.keys()]);
     for (const num of allHoleNums) {
       const apiHole = holesData.get(num);
@@ -185,7 +208,7 @@ function NewRoundContent() {
     }
 
     router.push(`/rounds/${roundId}`);
-  }, [roundId, holesData, router]);
+  }, [roundId, holesData, localHolesData, router]);
 
   // ── 选择模式：从已 plan 的 round 中选 ──
   if (mode === "pick") {

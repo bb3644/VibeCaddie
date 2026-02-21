@@ -111,7 +111,7 @@ export default function RecapPage() {
     );
   }
 
-  // 已经有回顾内容，展示它
+  // 已经有回顾内容，展示它 + 重新生成按钮
   if (recapText) {
     return (
       <div className="flex flex-col gap-4">
@@ -126,6 +126,13 @@ export default function RecapPage() {
           teeName={round.tee_name ?? ""}
           playedDate={round.played_date}
         />
+        <Button
+          variant="secondary"
+          onClick={handleGenerate}
+          disabled={generating}
+        >
+          {generating ? "Regenerating..." : "Regenerate Recap"}
+        </Button>
       </div>
     );
   }
