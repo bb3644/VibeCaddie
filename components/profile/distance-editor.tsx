@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import type { PlayerClubDistance } from "@/lib/db/types";
 
 interface DistanceEditorProps {
@@ -9,7 +10,7 @@ interface DistanceEditorProps {
 }
 
 export function DistanceEditor({ enabledClubs, initial }: DistanceEditorProps) {
-  // 将初始数据转换为 map: club_code -> yards string
+  // club_code -> yards string
   const [distances, setDistances] = useState<Record<string, string>>(() => {
     const m: Record<string, string> = {};
     for (const d of initial) {
@@ -18,39 +19,53 @@ export function DistanceEditor({ enabledClubs, initial }: DistanceEditorProps) {
     return m;
   });
 
-  // debounce timer ref
-  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-
-  const saveDistance = useCallback((clubCode: string, yards: string) => {
-    // 清除之前的 timer
-    if (timers.current[clubCode]) {
-      clearTimeout(timers.current[clubCode]);
-    }
-    timers.current[clubCode] = setTimeout(async () => {
-      const typicalCarryYards = yards ? Number(yards) : undefined;
-      await fetch("/api/profile/distances", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          club_code: clubCode,
-          typical_carry_yards: typicalCarryYards,
-        }),
-      });
-    }, 600);
-  }, []);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   function handleChange(clubCode: string, value: string) {
-    setDistances((prev) => ({ ...prev, [clubCode]: value }));
-    saveDistance(clubCode, value);
+    // 只允许数字
+    const digits = value.replace(/\D/g, "");
+    setSaved(false);
+    setDistances((prev) => ({ ...prev, [clubCode]: digits }));
   }
 
-  // 过滤出已启用的球杆
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const enabledList = Array.from(enabledClubs);
+      // 只保存有值的
+      const toSave = enabledList
+        .filter((code) => distances[code] && distances[code] !== "")
+        .map((code) => ({
+          club_code: code,
+          typical_carry_yards: Number(distances[code]),
+        }));
+
+      await Promise.all(
+        toSave.map((item) =>
+          fetch("/api/profile/distances", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item),
+          })
+        )
+      );
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      // 静默
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const enabledList = Array.from(enabledClubs);
 
   if (enabledList.length === 0) {
     return (
       <p className="text-[0.875rem] text-secondary">
-        Enable clubs in your bag first to set distances.
+        Save your bag first to set club distances.
       </p>
     );
   }
@@ -70,7 +85,9 @@ export function DistanceEditor({ enabledClubs, initial }: DistanceEditorProps) {
             </label>
             <div className="flex items-center gap-1 flex-1">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={distances[code] ?? ""}
                 onChange={(e) => handleChange(code, e.target.value)}
                 placeholder="--"
@@ -91,6 +108,10 @@ export function DistanceEditor({ enabledClubs, initial }: DistanceEditorProps) {
           </div>
         ))}
       </div>
+
+      <Button onClick={handleSave} disabled={saving}>
+        {saving ? "Saving..." : saved ? "Saved!" : "Save Distances"}
+      </Button>
     </div>
   );
 }

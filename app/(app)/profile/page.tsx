@@ -94,7 +94,7 @@ export default function ProfilePage() {
       {/* 球包 */}
       <Card>
         <SectionTitle className="mb-4">My Bag</SectionTitle>
-        <BagEditor initial={bagClubs} onChanged={setEnabledCodes} />
+        <BagEditor initial={bagClubs} onSaved={setEnabledCodes} />
       </Card>
 
       {/* 球杆距离 */}

@@ -133,6 +133,39 @@ export async function createCourseTee(data: {
 }
 
 /**
+ * 更新 tee 台信息（名称、par_total）
+ */
+export async function updateCourseTee(
+  teeId: string,
+  data: { tee_name?: string; par_total?: number }
+): Promise<CourseTee | null> {
+  const fields: string[] = [];
+  const values: unknown[] = [];
+  let idx = 1;
+
+  if (data.tee_name !== undefined) {
+    fields.push(`tee_name = $${idx}`);
+    values.push(data.tee_name);
+    // tee_color 同步更新
+    fields.push(`tee_color = $${idx}`);
+    idx++;
+  }
+  if (data.par_total !== undefined) {
+    fields.push(`par_total = $${idx++}`);
+    values.push(data.par_total);
+  }
+
+  if (fields.length === 0) return null;
+
+  values.push(teeId);
+  const result = await query<CourseTee>(
+    `UPDATE course_tees SET ${fields.join(', ')} WHERE id = $${idx} RETURNING *`,
+    values
+  );
+  return result.rows[0] ?? null;
+}
+
+/**
  * 获取某个 tee 台的所有球洞信息
  */
 export async function getCourseHoles(courseTeeId: string): Promise<CourseHole[]> {

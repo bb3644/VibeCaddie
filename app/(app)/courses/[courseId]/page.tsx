@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
@@ -45,6 +45,16 @@ export default function CourseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
   const [golferName, setGolferName] = useState("");
+
+  // 编辑球场名称
+  const [editingName, setEditingName] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [savingName, setSavingName] = useState(false);
+
+  // 编辑 tee par_total
+  const [editingTeeId, setEditingTeeId] = useState<string | null>(null);
+  const [editTeePar, setEditTeePar] = useState("");
+  const [savingTee, setSavingTee] = useState(false);
 
   // 添加 tee 的表单状态
   const [showAddTee, setShowAddTee] = useState(false);
@@ -123,6 +133,56 @@ export default function CourseDetailPage() {
     }
   }
 
+  // 保存球场名称
+  const handleSaveName = useCallback(async () => {
+    const trimmed = editName.trim();
+    if (!trimmed || trimmed === course?.name) {
+      setEditingName(false);
+      return;
+    }
+    setSavingName(true);
+    try {
+      const res = await fetch(`/api/courses/${courseId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      if (res.ok) {
+        const updated = (await res.json()) as Course;
+        setCourse((prev) => prev ? { ...prev, name: updated.name } : prev);
+      }
+    } catch { /* 静默 */ }
+    setSavingName(false);
+    setEditingName(false);
+  }, [editName, course?.name, courseId]);
+
+  // 保存 tee par_total
+  const handleSaveTeePar = useCallback(async (teeId: string) => {
+    const par = parseInt(editTeePar, 10);
+    if (!par || par < 1) {
+      setEditingTeeId(null);
+      return;
+    }
+    setSavingTee(true);
+    try {
+      const res = await fetch(`/api/courses/${courseId}/tees/${teeId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ par_total: par }),
+      });
+      if (res.ok) {
+        const updated = (await res.json()) as CourseTee;
+        setCourse((prev) =>
+          prev
+            ? { ...prev, tees: prev.tees.map((t) => (t.id === teeId ? updated : t)) }
+            : prev
+        );
+      }
+    } catch { /* 静默 */ }
+    setSavingTee(false);
+    setEditingTeeId(null);
+  }, [editTeePar, courseId]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -171,11 +231,50 @@ export default function CourseDetailPage() {
         &larr; All courses
       </Link>
 
-      {/* 球场名称和位置 */}
+      {/* 球场名称和位置 — 可点击编辑 */}
       <div>
-        <h1 className="text-[1.875rem] font-semibold text-text">
-          {course.name}
-        </h1>
+        {editingName ? (
+          <div className="flex items-center gap-2">
+            <input
+              autoFocus
+              className="text-[1.5rem] font-semibold text-text border-b-2 border-accent bg-transparent outline-none flex-1 min-w-0"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveName();
+                if (e.key === "Escape") setEditingName(false);
+              }}
+              disabled={savingName}
+            />
+            <button
+              onClick={handleSaveName}
+              disabled={savingName}
+              className="text-[0.8125rem] text-accent font-medium hover:underline cursor-pointer"
+            >
+              {savingName ? "..." : "Save"}
+            </button>
+            <button
+              onClick={() => setEditingName(false)}
+              className="text-[0.8125rem] text-secondary hover:underline cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <h1
+            className="text-[1.875rem] font-semibold text-text group cursor-pointer"
+            onClick={() => {
+              setEditName(course.name);
+              setEditingName(true);
+            }}
+            title="Click to edit"
+          >
+            {course.name}
+            <svg className="inline-block w-4 h-4 ml-2 text-secondary opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </h1>
+        )}
         {course.location_text && (
           <p className="text-[0.9375rem] text-secondary mt-1">
             {course.location_text}
@@ -226,9 +325,48 @@ export default function CourseDetailPage() {
                 <span className="text-[0.9375rem] font-medium text-text">
                   {tee.tee_name} Tee
                 </span>
-                <span className="text-[0.8125rem] text-secondary">
-                  Par {tee.par_total}
-                </span>
+                {editingTeeId === tee.id ? (
+                  <div
+                    className="flex items-center gap-1.5 mt-0.5"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="text-[0.8125rem] text-secondary">Par</span>
+                    <input
+                      autoFocus
+                      type="number"
+                      className="w-14 text-[0.8125rem] text-text border-b border-accent bg-transparent outline-none"
+                      value={editTeePar}
+                      onChange={(e) => setEditTeePar(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveTeePar(tee.id);
+                        if (e.key === "Escape") setEditingTeeId(null);
+                      }}
+                      disabled={savingTee}
+                    />
+                    <button
+                      onClick={() => handleSaveTeePar(tee.id)}
+                      disabled={savingTee}
+                      className="text-[0.75rem] text-accent font-medium cursor-pointer"
+                    >
+                      {savingTee ? "..." : "OK"}
+                    </button>
+                  </div>
+                ) : (
+                  <span
+                    className="text-[0.8125rem] text-secondary group/par inline-flex items-center gap-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditTeePar(String(tee.par_total));
+                      setEditingTeeId(tee.id);
+                    }}
+                    title="Click to edit par"
+                  >
+                    Par {tee.par_total}
+                    <svg className="w-3 h-3 text-secondary/50 opacity-0 group-hover/par:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </span>
+                )}
               </div>
             </div>
             <span className="text-[0.8125rem] text-accent font-medium">

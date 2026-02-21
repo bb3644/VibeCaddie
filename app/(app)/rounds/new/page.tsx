@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PlannedRoundPicker } from "@/components/round/planned-round-picker";
 import { RoundSetup } from "@/components/round/round-setup";
-import { HoleEntry } from "@/components/round/hole-entry";
+import { HoleEntry, type HoleEntryHandle, type HoleLocalData } from "@/components/round/hole-entry";
 import { HoleEntryNav } from "@/components/round/hole-entry-nav";
 import { Card } from "@/components/ui/card";
 import type { CourseHole, RoundHole, PlayerBagClub } from "@/lib/db/types";
@@ -31,7 +31,12 @@ function NewRoundContent() {
   const [bagClubs, setBagClubs] = useState<string[]>([]);
   const [currentHole, setCurrentHole] = useState(1);
   const [holesData, setHolesData] = useState<Map<number, RoundHole>>(new Map());
+  // 本地暂存（API 保存前也能记住数据）
+  const [localHolesData, setLocalHolesData] = useState<Map<number, HoleLocalData>>(new Map());
   const [loadingHoles, setLoadingHoles] = useState(false);
+
+  // HoleEntry 的 ref，用于切换洞时触发保存
+  const holeEntryRef = useRef<HoleEntryHandle>(null);
 
   // 创建轮次的状态（用于 planned round 路径）
   const [creating, setCreating] = useState(false);
@@ -116,7 +121,7 @@ function NewRoundContent() {
     []
   );
 
-  // 保存洞数据
+  // API 保存成功回调
   const handleHoleSave = useCallback((data: RoundHole) => {
     setHolesData((prev) => {
       const next = new Map(prev);
@@ -125,15 +130,44 @@ function NewRoundContent() {
     });
   }, []);
 
-  // 完成轮次
+  // 本地暂存回调（切换洞前总是触发）
+  const handleLocalChange = useCallback((data: HoleLocalData) => {
+    setLocalHolesData((prev) => {
+      const next = new Map(prev);
+      next.set(data.hole_number, data);
+      return next;
+    });
+  }, []);
+
+  // 切换到上一洞（先保存当前洞）
+  const handlePrev = useCallback(async () => {
+    await holeEntryRef.current?.save();
+    setCurrentHole((h) => Math.max(1, h - 1));
+  }, []);
+
+  // 切换到下一洞（先保存当前洞）
+  const handleNext = useCallback(async () => {
+    await holeEntryRef.current?.save();
+    setCurrentHole((h) => Math.min(courseHoles.length || 18, h + 1));
+  }, [courseHoles.length]);
+
+  // 完成轮次（先保存当前洞）
   const handleFinish = useCallback(async () => {
     if (!roundId) return;
 
+    // 先保存当前洞
+    await holeEntryRef.current?.save();
+
     let totalScore = 0;
     let hasScores = false;
-    for (const hole of holesData.values()) {
-      if (hole.score !== null) {
-        totalScore += hole.score;
+    // 优先用 API 数据，否则用本地暂存
+    const allHoleNums = new Set([...holesData.keys(), ...localHolesData.keys()]);
+    for (const num of allHoleNums) {
+      const apiHole = holesData.get(num);
+      const localHole = localHolesData.get(num);
+      const s = apiHole?.score ?? localHole?.score;
+      if (s !== null && s !== undefined) {
+        totalScore += s;
         hasScores = true;
       }
     }
@@ -230,20 +264,23 @@ function NewRoundContent() {
     (ch) => ch.hole_number === currentHole
   );
   const holesWithData = Array.from({ length: totalHoles }, (_, i) =>
-    holesData.has(i + 1)
+    holesData.has(i + 1) || localHolesData.has(i + 1)
   );
 
   return (
     <div className="flex flex-col gap-6">
       <Card>
         <HoleEntry
+          ref={holeEntryRef}
           roundId={roundId!}
           holeNumber={currentHole}
           par={currentCourseHole?.par ?? 4}
           yardage={currentCourseHole?.yardage ?? 0}
           playerBagClubs={bagClubs}
           initialData={holesData.get(currentHole) ?? null}
+          localData={localHolesData.get(currentHole) ?? null}
           onSave={handleHoleSave}
+          onLocalChange={handleLocalChange}
         />
       </Card>
 
@@ -251,8 +288,8 @@ function NewRoundContent() {
         currentHole={currentHole}
         totalHoles={totalHoles}
         holesWithData={holesWithData}
-        onPrev={() => setCurrentHole((h) => Math.max(1, h - 1))}
-        onNext={() => setCurrentHole((h) => Math.min(totalHoles, h + 1))}
+        onPrev={handlePrev}
+        onNext={handleNext}
         onFinish={handleFinish}
       />
     </div>
