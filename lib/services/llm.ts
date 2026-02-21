@@ -6,11 +6,17 @@ interface LLMResponse {
   content: string;
 }
 
+interface LLMConfig {
+  max_tokens?: number;
+  temperature?: number;
+}
+
 // ---------- OpenRouter Client ----------
 
 export async function callLLM(
   systemPrompt: string,
   userPrompt: string,
+  config?: LLMConfig,
 ): Promise<LLMResponse> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
@@ -33,8 +39,8 @@ export async function callLLM(
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      max_tokens: 2000,
-      temperature: 0.7,
+      max_tokens: config?.max_tokens ?? 2000,
+      temperature: config?.temperature ?? 0.7,
     }),
   });
 
@@ -135,3 +141,35 @@ Rules:
 - If you don't know something, say so honestly
 - Focus on decisions and strategy, not swing mechanics
 - You are NOT a swing coach — if asked about swing, redirect to course management`;
+
+export const SCORECARD_EXTRACTION_PROMPT = `You are a golf course data extraction tool.
+Given a golf course name (and optionally web-sourced text about it), extract the full scorecard data as JSON.
+
+Return ONLY valid JSON with this exact structure — no markdown, no explanation:
+{
+  "course_name": "Official Course Name",
+  "location": "City, Country",
+  "tees": [
+    {
+      "tee_name": "White",
+      "tee_color": "White",
+      "holes": [
+        { "hole_number": 1, "par": 4, "yardage": 380, "si": 7 },
+        ...18 holes total
+      ]
+    }
+  ],
+  "confidence": "high" | "medium" | "low"
+}
+
+Rules:
+- Each tee MUST have exactly 18 holes numbered 1-18
+- par must be 3, 4, or 5
+- yardage must be > 0 and reasonable (50-650 yards)
+- si (stroke index) must be 1-18, each value unique within a tee
+- Include all tees you know (White, Yellow, Red, Blue, Black, etc.)
+- tee_name and tee_color should be the same value (the color name)
+- confidence: "high" if you have reliable data, "medium" if partially estimated, "low" if mostly guessed
+- If you cannot find any reliable data for this course, return: { "error": "Course not found", "confidence": "low" }
+- Do NOT fabricate data — if unsure about specific holes, set confidence to "low"
+- Prefer data from the web content if provided; use your training data as fallback`;
