@@ -14,6 +14,7 @@ import type { Course, CourseTee } from "@/lib/db/types";
 const TEE_OPTIONS = [
   { value: "", label: "Select tee" },
   { value: "White", label: "White Tee" },
+  { value: "Yellow", label: "Yellow Tee" },
   { value: "Blue", label: "Blue Tee" },
   { value: "Red", label: "Red Tee" },
   { value: "Gold", label: "Gold Tee" },
@@ -23,9 +24,10 @@ const TEE_OPTIONS = [
 /** tee 颜色对应的圆点色 */
 const COLOR_MAP: Record<string, string> = {
   White: "bg-gray-200",
+  Yellow: "bg-yellow-400",
   Blue: "bg-blue-500",
   Red: "bg-red-500",
-  Gold: "bg-yellow-400",
+  Gold: "bg-amber-500",
   Black: "bg-gray-800",
 };
 
@@ -55,6 +57,7 @@ export default function CourseDetailPage() {
   const [editingTeeId, setEditingTeeId] = useState<string | null>(null);
   const [editTeePar, setEditTeePar] = useState("");
   const [savingTee, setSavingTee] = useState(false);
+  const [deletingTeeId, setDeletingTeeId] = useState<string | null>(null);
 
   // 添加 tee 的表单状态
   const [showAddTee, setShowAddTee] = useState(false);
@@ -182,6 +185,21 @@ export default function CourseDetailPage() {
     setSavingTee(false);
     setEditingTeeId(null);
   }, [editTeePar, courseId]);
+
+  // 删除 tee
+  const handleDeleteTee = useCallback(async (teeId: string, teeName: string) => {
+    if (!confirm(`Delete "${teeName} Tee" and all its hole data? This cannot be undone.`)) return;
+    setDeletingTeeId(teeId);
+    try {
+      const res = await fetch(`/api/courses/${courseId}/tees/${teeId}`, { method: "DELETE" });
+      if (res.ok) {
+        setCourse((prev) =>
+          prev ? { ...prev, tees: prev.tees.filter((t) => t.id !== teeId) } : prev
+        );
+      }
+    } catch { /* 静默 */ }
+    setDeletingTeeId(null);
+  }, [courseId]);
 
   if (loading) {
     return (
@@ -369,9 +387,29 @@ export default function CourseDetailPage() {
                 )}
               </div>
             </div>
-            <span className="text-[0.8125rem] text-accent font-medium">
-              Holes &amp; Hazards &rarr;
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-[0.8125rem] text-accent font-medium">
+                Holes &rarr;
+              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteTee(tee.id, tee.tee_name);
+                }}
+                disabled={deletingTeeId === tee.id}
+                className="text-secondary hover:text-red-500 transition-colors cursor-pointer p-1"
+                title="Delete tee"
+              >
+                {deletingTeeId === tee.id ? (
+                  <span className="text-[0.75rem]">...</span>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </Card>
         ))}
       </div>
