@@ -150,17 +150,24 @@ export default function RoundDetailPage() {
       )}
 
       {/* 操作按钮 */}
-      <div className="flex gap-3">
-        <Link href={`/rounds/${roundId}/recap`} className="flex-1">
-          <Button className="w-full">Generate Recap</Button>
-        </Link>
+      <div className="flex flex-col gap-3">
+        <div className="flex gap-3">
+          <Link href={`/rounds/${roundId}/edit`} className="flex-1">
+            <Button variant="secondary" className="w-full">Edit Holes</Button>
+          </Link>
+          <Link href={`/rounds/${roundId}/recap`} className="flex-1">
+            <Button className="w-full">
+              {round.recap_text ? "View Recap" : "Generate Recap"}
+            </Button>
+          </Link>
+        </div>
         <Button
           variant="ghost"
           onClick={handleDelete}
           disabled={deleting}
-          className="text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0"
+          className="text-red-500 hover:text-red-600 hover:bg-red-50"
         >
-          {deleting ? "..." : "Delete"}
+          {deleting ? "..." : "Delete Round"}
         </Button>
       </div>
     </div>
