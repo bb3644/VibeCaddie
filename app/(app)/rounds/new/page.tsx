@@ -35,6 +35,10 @@ function NewRoundContent() {
   const [localHolesData, setLocalHolesData] = useState<Map<number, HoleLocalData>>(new Map());
   const [loadingHoles, setLoadingHoles] = useState(false);
 
+  // 用 ref 同步跟踪最新数据，避免 handleFinish 闭包读到过期 state
+  const holesDataRef = useRef<Map<number, RoundHole>>(new Map());
+  const localHolesDataRef = useRef<Map<number, HoleLocalData>>(new Map());
+
   // HoleEntry 的 ref，用于切换洞时触发保存
   const holeEntryRef = useRef<HoleEntryHandle>(null);
 
@@ -121,20 +125,22 @@ function NewRoundContent() {
     []
   );
 
-  // API 保存成功回调
+  // API 保存成功回调 — 同时更新 state 和 ref
   const handleHoleSave = useCallback((data: RoundHole) => {
     setHolesData((prev) => {
       const next = new Map(prev);
       next.set(data.hole_number, data);
+      holesDataRef.current = next;
       return next;
     });
   }, []);
 
-  // 本地暂存回调（切换洞前总是触发）
+  // 本地暂存回调（切换洞前总是触发）— 同时更新 state 和 ref
   const handleLocalChange = useCallback((data: HoleLocalData) => {
     setLocalHolesData((prev) => {
       const next = new Map(prev);
       next.set(data.hole_number, data);
+      localHolesDataRef.current = next;
       return next;
     });
   }, []);
@@ -158,16 +164,21 @@ function NewRoundContent() {
   }, []);
 
   // 完成轮次（保存所有未存的洞 + 当前洞）
+  // 用 ref 读取最新数据，避免闭包读到过期 state
   const handleFinish = useCallback(async () => {
     if (!roundId) return;
 
-    // 1. 先保存当前洞
+    // 1. 先保存当前洞（会同步更新 ref）
     await holeEntryRef.current?.save();
 
-    // 2. 把所有本地暂存但未 API 保存的洞批量保存
+    // 2. 从 ref 读取最新数据
+    const latestLocal = localHolesDataRef.current;
+    const latestApi = holesDataRef.current;
+
+    // 3. 把所有本地暂存但未 API 保存的洞批量保存
     const savePromises: Promise<void>[] = [];
-    for (const [num, local] of localHolesData.entries()) {
-      if (holesData.has(num)) continue; // 已有 API 数据，跳过
+    for (const [num, local] of latestLocal.entries()) {
+      if (latestApi.has(num)) continue; // 已有 API 数据，跳过
       if (!local.tee_club || !local.tee_result) continue; // 数据不完整，跳过
       savePromises.push(
         fetch(`/api/rounds/${roundId}/holes`, {
@@ -187,14 +198,12 @@ function NewRoundContent() {
     }
     await Promise.all(savePromises);
 
-    // 3. 计算总杆数
+    // 4. 计算总杆数
     let totalScore = 0;
     let hasScores = false;
-    const allHoleNums = new Set([...holesData.keys(), ...localHolesData.keys()]);
+    const allHoleNums = new Set([...latestApi.keys(), ...latestLocal.keys()]);
     for (const num of allHoleNums) {
-      const apiHole = holesData.get(num);
-      const localHole = localHolesData.get(num);
-      const s = apiHole?.score ?? localHole?.score;
+      const s = latestApi.get(num)?.score ?? latestLocal.get(num)?.score;
       if (s !== null && s !== undefined) {
         totalScore += s;
         hasScores = true;
@@ -214,7 +223,7 @@ function NewRoundContent() {
     }
 
     router.push(`/rounds/${roundId}`);
-  }, [roundId, holesData, localHolesData, router]);
+  }, [roundId, router]);
 
   // ── 选择模式：从已 plan 的 round 中选 ──
   if (mode === "pick") {

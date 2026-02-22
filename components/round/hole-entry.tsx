@@ -296,7 +296,7 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
                 <button
                   key={result}
                   type="button"
-                  onClick={() => { setTeeResult(result); setSaved(false); }}
+                  onClick={() => { setTeeResult(teeResult === result ? "" : result); setSaved(false); }}
                   className={`
                     min-h-[44px] rounded-lg border text-[0.875rem] font-semibold
                     transition-colors duration-150 cursor-pointer

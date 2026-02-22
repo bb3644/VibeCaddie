@@ -31,6 +31,10 @@ export default function EditRoundPage() {
   const [holesData, setHolesData] = useState<Map<number, RoundHole>>(new Map());
   const [localHolesData, setLocalHolesData] = useState<Map<number, HoleLocalData>>(new Map());
 
+  // 用 ref 同步跟踪最新数据，避免 handleFinish 闭包读到过期 state
+  const holesDataRef = useRef<Map<number, RoundHole>>(new Map());
+  const localHolesDataRef = useRef<Map<number, HoleLocalData>>(new Map());
+
   const holeEntryRef = useRef<HoleEntryHandle>(null);
 
   // 加载 round 数据 + bag clubs
@@ -56,6 +60,7 @@ export default function EditRoundPage() {
         for (const h of round.holes) {
           map.set(h.hole_number, h);
         }
+        holesDataRef.current = map;
         setHolesData(map);
 
         if (bagRes.ok) {
@@ -71,20 +76,22 @@ export default function EditRoundPage() {
     load();
   }, [roundId]);
 
-  // API 保存回调
+  // API 保存回调 — 同时更新 state 和 ref
   const handleHoleSave = useCallback((data: RoundHole) => {
     setHolesData((prev) => {
       const next = new Map(prev);
       next.set(data.hole_number, data);
+      holesDataRef.current = next;
       return next;
     });
   }, []);
 
-  // 本地暂存回调
+  // 本地暂存回调 — 同时更新 state 和 ref
   const handleLocalChange = useCallback((data: HoleLocalData) => {
     setLocalHolesData((prev) => {
       const next = new Map(prev);
       next.set(data.hole_number, data);
+      localHolesDataRef.current = next;
       return next;
     });
   }, []);
@@ -108,13 +115,19 @@ export default function EditRoundPage() {
   }, []);
 
   // 完成编辑 — 保存所有未存的洞 + 更新总分
+  // 用 ref 读取最新数据，避免闭包读到过期 state
   const handleFinish = useCallback(async () => {
+    // 1. 先保存当前洞（会同步更新 ref）
     await holeEntryRef.current?.save();
 
-    // 批量保存本地暂存的洞
+    // 2. 从 ref 读取最新数据
+    const latestLocal = localHolesDataRef.current;
+    const latestApi = holesDataRef.current;
+
+    // 3. 批量保存本地暂存的洞
     const savePromises: Promise<void>[] = [];
-    for (const [num, local] of localHolesData.entries()) {
-      if (holesData.has(num)) continue;
+    for (const [num, local] of latestLocal.entries()) {
+      if (latestApi.has(num)) continue;
       if (!local.tee_club || !local.tee_result) continue;
       savePromises.push(
         fetch(`/api/rounds/${roundId}/holes`, {
@@ -134,12 +147,12 @@ export default function EditRoundPage() {
     }
     await Promise.all(savePromises);
 
-    // 重新计算总分
+    // 4. 重新计算总分
     let totalScore = 0;
     let hasScores = false;
-    const allNums = new Set([...holesData.keys(), ...localHolesData.keys()]);
+    const allNums = new Set([...latestApi.keys(), ...latestLocal.keys()]);
     for (const num of allNums) {
-      const s = holesData.get(num)?.score ?? localHolesData.get(num)?.score;
+      const s = latestApi.get(num)?.score ?? latestLocal.get(num)?.score;
       if (s !== null && s !== undefined) {
         totalScore += s;
         hasScores = true;
@@ -155,7 +168,7 @@ export default function EditRoundPage() {
     }
 
     router.push(`/rounds/${roundId}`);
-  }, [roundId, holesData, localHolesData, router]);
+  }, [roundId, router]);
 
   if (loading) {
     return (
