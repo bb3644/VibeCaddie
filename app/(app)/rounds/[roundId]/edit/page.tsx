@@ -76,24 +76,20 @@ export default function EditRoundPage() {
     load();
   }, [roundId]);
 
-  // API 保存回调 — 同时更新 state 和 ref
+  // API 保存回调 — 立即更新 ref，然后更新 state
   const handleHoleSave = useCallback((data: RoundHole) => {
-    setHolesData((prev) => {
-      const next = new Map(prev);
-      next.set(data.hole_number, data);
-      holesDataRef.current = next;
-      return next;
-    });
+    const next = new Map(holesDataRef.current);
+    next.set(data.hole_number, data);
+    holesDataRef.current = next;
+    setHolesData(next);
   }, []);
 
-  // 本地暂存回调 — 同时更新 state 和 ref
+  // 本地暂存回调 — 立即更新 ref，然后更新 state
   const handleLocalChange = useCallback((data: HoleLocalData) => {
-    setLocalHolesData((prev) => {
-      const next = new Map(prev);
-      next.set(data.hole_number, data);
-      localHolesDataRef.current = next;
-      return next;
-    });
+    const next = new Map(localHolesDataRef.current);
+    next.set(data.hole_number, data);
+    localHolesDataRef.current = next;
+    setLocalHolesData(next);
   }, []);
 
   // 切洞
@@ -120,14 +116,12 @@ export default function EditRoundPage() {
     // 1. 先保存当前洞（会同步更新 ref）
     await holeEntryRef.current?.save();
 
-    // 2. 从 ref 读取最新数据
+    // 2. 从 ref 读取最新本地数据
     const latestLocal = localHolesDataRef.current;
-    const latestApi = holesDataRef.current;
 
-    // 3. 批量保存本地暂存的洞
+    // 3. 全量 upsert 所有有数据的洞（API 做 ON CONFLICT UPDATE，重复保存无害）
     const savePromises: Promise<void>[] = [];
-    for (const [num, local] of latestLocal.entries()) {
-      if (latestApi.has(num)) continue;
+    for (const [, local] of latestLocal.entries()) {
       if (!local.tee_club || !local.tee_result) continue;
       savePromises.push(
         fetch(`/api/rounds/${roundId}/holes`, {
@@ -150,9 +144,9 @@ export default function EditRoundPage() {
     // 4. 重新计算总分
     let totalScore = 0;
     let hasScores = false;
-    const allNums = new Set([...latestApi.keys(), ...latestLocal.keys()]);
+    const allNums = new Set([...holesDataRef.current.keys(), ...latestLocal.keys()]);
     for (const num of allNums) {
-      const s = latestApi.get(num)?.score ?? latestLocal.get(num)?.score;
+      const s = holesDataRef.current.get(num)?.score ?? latestLocal.get(num)?.score;
       if (s !== null && s !== undefined) {
         totalScore += s;
         hasScores = true;
