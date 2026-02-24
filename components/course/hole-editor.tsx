@@ -101,8 +101,8 @@ export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
     loadHoles();
   }, [loadHoles]);
 
-  // Save All：批量 upsert
-  async function handleSave() {
+  // Save All：批量 upsert，返回是否成功
+  async function handleSave(): Promise<boolean> {
     setSaving(true);
     setFeedback("");
 
@@ -138,15 +138,24 @@ export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
           return next;
         });
         setFeedback("Saved!");
+        return true;
       } else {
         setFeedback("Failed to save. Please try again.");
+        return false;
       }
     } catch {
       setFeedback("Network error. Please try again.");
+      return false;
     } finally {
       setSaving(false);
       setTimeout(() => setFeedback(""), 3000);
     }
+  }
+
+  // Finish：先保存再跳转
+  async function handleFinish() {
+    const success = await handleSave();
+    if (success) onFinish?.();
   }
 
   // 更新单个洞
@@ -220,7 +229,7 @@ export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
           {saving ? "Saving..." : "Save"}
         </Button>
         {onFinish && (
-          <Button onClick={onFinish}>
+          <Button onClick={handleFinish} disabled={saving}>
             Finish
           </Button>
         )}
