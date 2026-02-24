@@ -52,23 +52,23 @@ function NewRoundContent() {
 
     setLoadingHoles(true);
 
-    fetch("/api/profile/bag")
-      .then((res) => (res.ok ? res.json() : []))
-      .then((clubs) => {
-        const enabledClubs = (clubs as PlayerBagClub[])
-          .filter((c) => c.enabled)
-          .map((c) => c.club_code);
-        setBagClubs(enabledClubs);
-      });
-
-    fetch(`/api/rounds/${roundId}`)
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.course_holes) {
-          setCourseHoles(data.course_holes as CourseHole[]);
-        }
-      })
-      .finally(() => setLoadingHoles(false));
+    Promise.all([
+      fetch("/api/profile/bag")
+        .then((res) => (res.ok ? res.json() : []))
+        .then((clubs) => {
+          const enabledClubs = (clubs as PlayerBagClub[])
+            .filter((c) => c.enabled)
+            .map((c) => c.club_code);
+          setBagClubs(enabledClubs);
+        }),
+      fetch(`/api/rounds/${roundId}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.course_holes) {
+            setCourseHoles(data.course_holes as CourseHole[]);
+          }
+        }),
+    ]).finally(() => setLoadingHoles(false));
   }, [courseTeeId, roundId]);
 
   // 从 planned round 选择后，创建 round 并进入录入

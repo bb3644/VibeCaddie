@@ -44,6 +44,11 @@ const APPROACH_RESULT_STYLES: Record<ApproachResult, { base: string; selected: s
   RIGHT: { base: "bg-amber-50 text-amber-700 border-amber-200",   selected: "bg-amber-500 text-white border-amber-500" },
 };
 
+// 球包未配置时的默认球杆
+const DEFAULT_BAG_CLUBS = [
+  "D", "3W", "5W", "4H", "5i", "6i", "7i", "8i", "9i", "PW", "SW", "LW", "Putter",
+];
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 interface ClubGridProps {
@@ -53,13 +58,6 @@ interface ClubGridProps {
 }
 
 function ClubGrid({ clubs, selected, onSelect }: ClubGridProps) {
-  if (clubs.length === 0) {
-    return (
-      <p className="text-[0.8125rem] text-secondary italic">
-        No clubs in bag — add clubs in Profile first.
-      </p>
-    );
-  }
   return (
     <div className="grid grid-cols-5 sm:grid-cols-7 gap-2">
       {clubs.map((club) => (
@@ -158,8 +156,11 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
     { roundId, holeNumber, par, yardage, playerBagClubs, initialData, localData, onSave, onLocalChange },
     ref
   ) {
+    // 球包为空时回退到默认球杆
+    const isUsingDefaults = playerBagClubs.length === 0;
+    const effectiveClubs = isUsingDefaults ? DEFAULT_BAG_CLUBS : playerBagClubs;
     // 不含 Putter 的球杆列表
-    const selectableClubs = playerBagClubs.filter((c) => c !== "Putter");
+    const selectableClubs = effectiveClubs.filter((c) => c !== "Putter");
 
     // 优先本地暂存 → API 数据 → 默认值
     const [teeClub,       setTeeClub]       = useState(localData?.tee_club       ?? initialData?.tee_club       ?? "");
@@ -266,6 +267,16 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
             Par {par} &middot; {yardage} yds
           </p>
         </div>
+
+        {/* 球包未配置时的提示 */}
+        {isUsingDefaults && (
+          <p className="text-[0.75rem] text-secondary text-center">
+            Using standard clubs —{" "}
+            <a href="/profile" className="underline hover:text-text">
+              customize in Profile
+            </a>
+          </p>
+        )}
 
         {/* ① Score + Putts — top and most visible */}
         <div className="flex justify-center gap-10">
