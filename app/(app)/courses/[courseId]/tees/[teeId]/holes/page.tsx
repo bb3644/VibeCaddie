@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { InfoBanner } from "@/components/ui/info-banner";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { HoleEditor } from "@/components/course/hole-editor";
 import type { Course, CourseTee } from "@/lib/db/types";
 
@@ -24,22 +26,29 @@ export default function HolesPage() {
   );
   const [teeName, setTeeName] = useState(searchParams.get("tee") ?? "");
   const [location, setLocation] = useState(searchParams.get("loc") ?? "");
-  const [loading, setLoading] = useState(!courseName);
+  const [loading, setLoading] = useState(true);
+
+  // CR / SL 状态
+  const [courseRating, setCourseRating] = useState("");
+  const [slopeRating, setSlopeRating] = useState("");
+  const [savingRating, setSavingRating] = useState(false);
+  const [ratingFeedback, setRatingFeedback] = useState("");
 
   useEffect(() => {
-    // 如果已从 query 获得名字，不再请求
-    if (courseName) return;
-
     async function load() {
       try {
         const res = await fetch(`/api/courses/${courseId}`);
         if (res.ok) {
           const data = (await res.json()) as CourseWithTees;
-          setCourseName(data.name);
-          setLocation(data.location_text ?? "");
+          if (!courseName) {
+            setCourseName(data.name);
+            setLocation(data.location_text ?? "");
+          }
           const tee = data.tees.find((t) => t.id === teeId);
           if (tee) {
-            setTeeName(tee.tee_name);
+            if (!teeName) setTeeName(tee.tee_name);
+            setCourseRating(tee.course_rating != null ? String(tee.course_rating) : "");
+            setSlopeRating(tee.slope_rating != null ? String(tee.slope_rating) : "");
           }
         }
       } catch {
@@ -49,7 +58,35 @@ export default function HolesPage() {
       }
     }
     load();
-  }, [courseId, teeId, courseName]);
+  }, [courseId, teeId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleSaveRating() {
+    const cr = parseFloat(courseRating);
+    const sl = parseInt(slopeRating, 10);
+    if (isNaN(cr) || cr <= 0 || isNaN(sl) || sl <= 0) {
+      setRatingFeedback("Enter valid Course Rating and Slope Rating.");
+      setTimeout(() => setRatingFeedback(""), 3000);
+      return;
+    }
+    setSavingRating(true);
+    try {
+      const res = await fetch(`/api/courses/${courseId}/tees/${teeId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ course_rating: cr, slope_rating: sl }),
+      });
+      if (res.ok) {
+        setRatingFeedback("Saved!");
+      } else {
+        setRatingFeedback("Failed to save.");
+      }
+    } catch {
+      setRatingFeedback("Network error.");
+    } finally {
+      setSavingRating(false);
+      setTimeout(() => setRatingFeedback(""), 3000);
+    }
+  }
 
   if (loading) {
     return (
@@ -92,6 +129,44 @@ export default function HolesPage() {
         Fill in what you remember — par, yardage, stroke index, and any
         hazards. Approximate is fine. Other players can add what you missed.
       </InfoBanner>
+
+      {/* Course Rating & Slope Rating */}
+      <div className="flex flex-col gap-2 p-4 rounded-lg border border-divider bg-white">
+        <p className="text-[0.8125rem] font-medium text-text">
+          Course Rating &amp; Slope
+        </p>
+        <p className="text-[0.75rem] text-secondary -mt-1">
+          Used to calculate your VibeCaddie Index after each round.
+        </p>
+        <div className="flex items-end gap-3">
+          <div className="w-32">
+            <Input
+              label="Course Rating"
+              type="number"
+              value={courseRating}
+              onChange={setCourseRating}
+              placeholder="e.g. 71.5"
+            />
+          </div>
+          <div className="w-32">
+            <Input
+              label="Slope Rating"
+              type="number"
+              value={slopeRating}
+              onChange={setSlopeRating}
+              placeholder="e.g. 130"
+            />
+          </div>
+          <Button variant="secondary" onClick={handleSaveRating} disabled={savingRating}>
+            {savingRating ? "Saving..." : "Save"}
+          </Button>
+          {ratingFeedback && (
+            <span className={`text-[0.8125rem] ${ratingFeedback === "Saved!" ? "text-accent" : "text-red-500"}`}>
+              {ratingFeedback}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* 球洞编辑器 */}
       <HoleEditor

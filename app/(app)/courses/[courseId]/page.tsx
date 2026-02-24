@@ -68,9 +68,6 @@ export default function CourseDetailPage() {
   const [addingTee, setAddingTee] = useState(false);
   const [teeError, setTeeError] = useState("");
 
-  // 编辑 tee 的 course_rating / slope_rating
-  const [editTeeRating, setEditTeeRating] = useState("");
-  const [editTeeSlope, setEditTeeSlope] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -173,7 +170,7 @@ export default function CourseDetailPage() {
     setEditingName(false);
   }, [editName, course?.name, courseId]);
 
-  // 保存 tee 信息（par_total、course_rating、slope_rating）
+  // 保存 tee par_total
   const handleSaveTeePar = useCallback(async (teeId: string) => {
     const par = parseInt(editTeePar, 10);
     if (!par || par < 1) {
@@ -182,16 +179,10 @@ export default function CourseDetailPage() {
     }
     setSavingTee(true);
     try {
-      const body: Record<string, unknown> = { par_total: par };
-      const cr = parseFloat(editTeeRating);
-      const sl = parseInt(editTeeSlope, 10);
-      body.course_rating = !isNaN(cr) && cr > 0 ? cr : null;
-      body.slope_rating = !isNaN(sl) && sl > 0 ? sl : null;
-
       const res = await fetch(`/api/courses/${courseId}/tees/${teeId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ par_total: par }),
       });
       if (res.ok) {
         const updated = (await res.json()) as CourseTee;
@@ -204,7 +195,7 @@ export default function CourseDetailPage() {
     } catch { /* 静默 */ }
     setSavingTee(false);
     setEditingTeeId(null);
-  }, [editTeePar, editTeeRating, editTeeSlope, courseId]);
+  }, [editTeePar, courseId]);
 
   // 删除 tee
   const handleDeleteTee = useCallback(async (teeId: string, teeName: string) => {
@@ -365,53 +356,28 @@ export default function CourseDetailPage() {
                 </span>
                 {editingTeeId === tee.id ? (
                   <div
-                    className="flex flex-col gap-1 mt-0.5"
+                    className="flex items-center gap-1.5 mt-0.5"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[0.75rem] text-secondary w-8">Par</span>
-                      <input
-                        autoFocus
-                        type="number"
-                        className="w-14 text-[0.8125rem] text-text border-b border-accent bg-transparent outline-none"
-                        value={editTeePar}
-                        onChange={(e) => setEditTeePar(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleSaveTeePar(tee.id);
-                          if (e.key === "Escape") setEditingTeeId(null);
-                        }}
-                        disabled={savingTee}
-                      />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[0.75rem] text-secondary w-8">CR</span>
-                      <input
-                        type="number"
-                        step="0.1"
-                        className="w-14 text-[0.8125rem] text-text border-b border-accent bg-transparent outline-none"
-                        value={editTeeRating}
-                        onChange={(e) => setEditTeeRating(e.target.value)}
-                        placeholder="e.g. 71.5"
-                        disabled={savingTee}
-                      />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[0.75rem] text-secondary w-8">SL</span>
-                      <input
-                        type="number"
-                        className="w-14 text-[0.8125rem] text-text border-b border-accent bg-transparent outline-none"
-                        value={editTeeSlope}
-                        onChange={(e) => setEditTeeSlope(e.target.value)}
-                        placeholder="e.g. 130"
-                        disabled={savingTee}
-                      />
-                    </div>
+                    <span className="text-[0.8125rem] text-secondary">Par</span>
+                    <input
+                      autoFocus
+                      type="number"
+                      className="w-14 text-[0.8125rem] text-text border-b border-accent bg-transparent outline-none"
+                      value={editTeePar}
+                      onChange={(e) => setEditTeePar(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveTeePar(tee.id);
+                        if (e.key === "Escape") setEditingTeeId(null);
+                      }}
+                      disabled={savingTee}
+                    />
                     <button
                       onClick={() => handleSaveTeePar(tee.id)}
                       disabled={savingTee}
-                      className="text-[0.75rem] text-accent font-medium cursor-pointer self-start mt-0.5"
+                      className="text-[0.75rem] text-accent font-medium cursor-pointer"
                     >
-                      {savingTee ? "..." : "Save"}
+                      {savingTee ? "..." : "OK"}
                     </button>
                   </div>
                 ) : (
@@ -420,15 +386,13 @@ export default function CourseDetailPage() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setEditTeePar(String(tee.par_total));
-                      setEditTeeRating(tee.course_rating != null ? String(tee.course_rating) : "");
-                      setEditTeeSlope(tee.slope_rating != null ? String(tee.slope_rating) : "");
                       setEditingTeeId(tee.id);
                     }}
-                    title="Click to edit"
+                    title="Click to edit par"
                   >
                     Par {tee.par_total}
                     {tee.course_rating != null && tee.slope_rating != null && (
-                      <span className="ml-1">
+                      <span className="ml-1 text-secondary/60">
                         · CR {tee.course_rating} / SL {tee.slope_rating}
                       </span>
                     )}
