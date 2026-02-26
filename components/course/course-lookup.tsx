@@ -32,8 +32,9 @@ interface LookupResult {
   course_name: string;
   location: string;
   tees: LookupTee[];
-  source_url?: string;
   confidence: "high" | "medium" | "low";
+  scorecard_source: "golfcourseapi";
+  notes_source_url?: string;
 }
 
 type LookupState = "idle" | "searching" | "preview" | "saving";
@@ -429,7 +430,7 @@ export function CourseLookup() {
             onClick={handleSearch}
             disabled={state === "searching"}
           >
-            {state === "searching" ? "Searching... (may take 10s)" : "Search Online"}
+            {state === "searching" ? "Searching... (may take 15s)" : "Search Online"}
           </Button>
         </>
       )}
@@ -447,6 +448,17 @@ export function CourseLookup() {
             {result.location && (
               <p className="text-[0.875rem] text-secondary">{result.location}</p>
             )}
+            {/* 数据来源标签 */}
+            <div className="flex flex-col gap-0.5">
+              <p className="text-[0.75rem] text-green-700">
+                Scorecard: GolfCourseAPI ✓
+              </p>
+              <p className="text-[0.75rem] text-secondary">
+                {result.notes_source_url
+                  ? `Hole notes: ${result.notes_source_url}`
+                  : "Hole notes: not found"}
+              </p>
+            </div>
             {mergeTarget && (
               <p className="text-[0.8125rem] text-accent font-medium">
                 Adding tees to: {mergeTarget.name}
@@ -584,4 +596,5 @@ export function CourseLookup() {
     </div>
   );
 }
+
 

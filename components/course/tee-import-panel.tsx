@@ -26,6 +26,8 @@ interface LookupResult {
   location: string;
   tees: LookupTee[];
   confidence: "high" | "medium" | "low";
+  scorecard_source: "golfcourseapi";
+  notes_source_url?: string;
 }
 
 type ImportState = "idle" | "searching" | "preview" | "saving";
@@ -47,6 +49,7 @@ export function TeeImportPanel({
   onCancel,
 }: TeeImportPanelProps) {
   const [state, setState] = useState<ImportState>("idle");
+  const [lookupResult, setLookupResult] = useState<LookupResult | null>(null);
   const [availableTees, setAvailableTees] = useState<LookupTee[]>([]);
   const [selectedTee, setSelectedTee] = useState<LookupTee | null>(null);
   const [error, setError] = useState("");
@@ -75,6 +78,7 @@ export function TeeImportPanel({
       const text = await res.text();
       if (!text) throw new Error("Empty response from server. Please try again.");
       const data = JSON.parse(text) as LookupResult;
+      setLookupResult(data);
 
       if (!data.tees || data.tees.length === 0) {
         throw new Error("No tee data found for this course.");
@@ -188,11 +192,19 @@ export function TeeImportPanel({
 
       {state === "preview" && (
         <>
-          <p className="text-[0.8125rem] text-secondary">
-            {availableTees.length} new tee
-            {availableTees.length !== 1 ? "s" : ""} found. Select one to
-            import:
-          </p>
+          <div className="flex flex-col gap-0.5">
+            <p className="text-[0.8125rem] text-secondary">
+              {availableTees.length} new tee
+              {availableTees.length !== 1 ? "s" : ""} found. Select one to
+              import:
+            </p>
+            <p className="text-[0.75rem] text-green-700">Scorecard: GolfCourseAPI ✓</p>
+            <p className="text-[0.75rem] text-secondary">
+              {lookupResult?.notes_source_url
+                ? `Hole notes: ${lookupResult.notes_source_url}`
+                : "Hole notes: not found"}
+            </p>
+          </div>
 
           <div className="flex flex-col gap-2">
             {availableTees.map((tee) => (
