@@ -207,8 +207,12 @@ export default function CourseDetailPage() {
         setCourse((prev) =>
           prev ? { ...prev, tees: prev.tees.filter((t) => t.id !== teeId) } : prev
         );
+      } else {
+        alert("Failed to delete tee. Please try again.");
       }
-    } catch { /* 静默 */ }
+    } catch {
+      alert("Failed to delete tee. Please try again.");
+    }
     setDeletingTeeId(null);
   }, [courseId]);
 

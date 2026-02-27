@@ -104,10 +104,18 @@ export async function updateCourse(
 }
 
 /**
- * 删除球场（级联删除其下的 tees、holes、hazards）
+ * 删除球场（级联删除所有关联数据）
  */
 export async function deleteCourse(courseId: string): Promise<boolean> {
-  // 先删 hazards → holes → tees → course
+  const teeIds = `SELECT id FROM course_tees WHERE course_id = $1`;
+
+  // 先删引用 tee 的私有数据（无 ON DELETE CASCADE）
+  await query(`DELETE FROM round_holes WHERE round_id IN (SELECT id FROM rounds WHERE course_tee_id IN (${teeIds}))`, [courseId]);
+  await query(`DELETE FROM rounds WHERE course_tee_id IN (${teeIds})`, [courseId]);
+  await query(`DELETE FROM pre_round_briefings WHERE course_tee_id IN (${teeIds})`, [courseId]);
+  await query(`DELETE FROM player_hole_history WHERE course_tee_id IN (${teeIds})`, [courseId]);
+
+  // 再删共享球场数据：hazards → holes → tees → course
   await query(
     `DELETE FROM hole_hazards WHERE course_hole_id IN (
        SELECT h.id FROM course_holes h
@@ -117,9 +125,7 @@ export async function deleteCourse(courseId: string): Promise<boolean> {
     [courseId]
   );
   await query(
-    `DELETE FROM course_holes WHERE course_tee_id IN (
-       SELECT id FROM course_tees WHERE course_id = $1
-     )`,
+    `DELETE FROM course_holes WHERE course_tee_id IN (${teeIds})`,
     [courseId]
   );
   await query('DELETE FROM course_tees WHERE course_id = $1', [courseId]);
@@ -200,10 +206,16 @@ export async function updateCourseTee(
 }
 
 /**
- * 删除 tee 台（级联删除其下的 holes 和 hazards）
+ * 删除 tee 台（级联删除所有关联数据）
  */
 export async function deleteCourseTee(teeId: string): Promise<boolean> {
-  // 先删 hazards → holes → tee
+  // 先删引用 tee 的私有数据（无 ON DELETE CASCADE）
+  await query('DELETE FROM round_holes WHERE round_id IN (SELECT id FROM rounds WHERE course_tee_id = $1)', [teeId]);
+  await query('DELETE FROM rounds WHERE course_tee_id = $1', [teeId]);
+  await query('DELETE FROM pre_round_briefings WHERE course_tee_id = $1', [teeId]);
+  await query('DELETE FROM player_hole_history WHERE course_tee_id = $1', [teeId]);
+
+  // 再删共享数据：hazards → holes → tee
   await query(
     `DELETE FROM hole_hazards WHERE course_hole_id IN (SELECT id FROM course_holes WHERE course_tee_id = $1)`,
     [teeId]

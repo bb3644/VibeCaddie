@@ -28,8 +28,12 @@ export function CourseList({ courses, onDelete }: CourseListProps) {
       const res = await fetch(`/api/courses/${course.id}`, { method: "DELETE" });
       if (res.ok) {
         onDelete?.(course.id);
+      } else {
+        alert("Failed to delete course. Please try again.");
       }
-    } catch { /* 静默 */ }
+    } catch {
+      alert("Failed to delete course. Please try again.");
+    }
     setDeletingId(null);
   };
 
