@@ -62,23 +62,28 @@ interface GolfCourseAPICourse {
 async function searchGolfCourseAPI(name: string): Promise<GolfCourseAPICourse | null> {
   const apiKey = process.env.GOLF_COURSE_API_KEY;
   if (!apiKey) {
-    console.warn('[scorecard-lookup] GOLF_COURSE_API_KEY not set');
+    console.error('[scorecard-lookup] ❌ GOLF_COURSE_API_KEY not set — check Amplify env vars');
     return null;
   }
+  console.log('[scorecard-lookup] GOLF_COURSE_API_KEY present (length:', apiKey.length, ')');
 
   try {
     const url = `https://api.golfcourseapi.com/v1/search?search_query=${encodeURIComponent(name)}`;
+    console.log('[scorecard-lookup] fetching:', url);
     const res = await fetch(url, {
       headers: { Authorization: `Key ${apiKey}` },
       signal: AbortSignal.timeout(10000),
     });
+    console.log('[scorecard-lookup] GolfCourseAPI status:', res.status);
     if (!res.ok) {
-      console.warn(`[scorecard-lookup] GolfCourseAPI error: ${res.status}`);
+      const body = await res.text().catch(() => '(empty)');
+      console.error(`[scorecard-lookup] GolfCourseAPI error ${res.status}:`, body);
       return null;
     }
     const data = await res.json();
     console.log('[scorecard-lookup] GolfCourseAPI raw response:', JSON.stringify(data, null, 2));
     const courses = (data.courses ?? []) as GolfCourseAPICourse[];
+    console.log('[scorecard-lookup] GolfCourseAPI returned', courses.length, 'courses');
     return courses.length > 0 ? courses[0] : null;
   } catch (err) {
     console.error('[scorecard-lookup] GolfCourseAPI fetch error:', err);
@@ -91,9 +96,13 @@ function mapGolfCourseAPITees(apiCourse: GolfCourseAPICourse): LookupTee[] {
     ...(apiCourse.tees?.male ?? []),
     ...(apiCourse.tees?.female ?? []),
   ];
+  console.log('[scorecard-lookup] mapTees: total raw tees:', allTees.length,
+    '— holes per tee:', allTees.map(t => `${t.tee_name}(${t.holes?.length ?? 0}h)`).join(', '));
 
-  return allTees
-    .filter((t) => Array.isArray(t.holes) && t.holes.length === 18)
+  const filtered = allTees.filter((t) => Array.isArray(t.holes) && t.holes.length === 18);
+  console.log('[scorecard-lookup] mapTees: after filter (18 holes only):', filtered.length, 'tees');
+
+  return filtered
     .map((t) => ({
       tee_name: t.tee_name,
       tee_color: t.tee_name,
@@ -142,7 +151,10 @@ interface SearchItem {
 async function googleSearch(query: string, numResults = 3): Promise<SearchItem[]> {
   const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
   const cx = process.env.GOOGLE_SEARCH_ENGINE_ID;
-  if (!apiKey || !cx) return [];
+  if (!apiKey || !cx) {
+    console.warn('[scorecard-lookup] Google Search skipped — GOOGLE_SEARCH_API_KEY:', !!apiKey, 'GOOGLE_SEARCH_ENGINE_ID:', !!cx);
+    return [];
+  }
 
   const url =
     `https://www.googleapis.com/customsearch/v1` +
@@ -152,11 +164,18 @@ async function googleSearch(query: string, numResults = 3): Promise<SearchItem[]
     `&num=${numResults}`;
 
   try {
+    console.log('[scorecard-lookup] Google search query:', query);
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      const body = await res.text().catch(() => '(empty)');
+      console.error('[scorecard-lookup] Google Search error', res.status, ':', body.slice(0, 200));
+      return [];
+    }
     const data = await res.json();
+    console.log('[scorecard-lookup] Google Search returned', (data.items ?? []).length, 'results');
     return (data.items ?? []) as SearchItem[];
-  } catch {
+  } catch (err) {
+    console.error('[scorecard-lookup] Google Search fetch error:', err);
     return [];
   }
 }

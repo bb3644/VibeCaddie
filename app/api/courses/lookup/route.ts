@@ -9,6 +9,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { name, location } = body as { name: string; location?: string };
+    console.log('[lookup-route] request:', { name, location });
 
     if (!name || !name.trim()) {
       return NextResponse.json(
@@ -18,24 +19,26 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await lookupCourseScorecard(name.trim(), location?.trim());
+    console.log('[lookup-route] success:', result.course_name, '—', result.tees.length, 'tees');
 
     return NextResponse.json(result);
   } catch (error) {
     const message = (error as Error).message;
+    console.error('[lookup-route] caught error:', message);
 
     if (message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // LLM 未找到球场 or 解析失败
-    if (message === 'Course not found') {
+    // 球场未找到 or 无完整数据
+    if (message.startsWith('Course not found') || message.startsWith('Course found but')) {
       return NextResponse.json(
-        { error: 'Could not find scorecard data for this course.' },
+        { error: message },
         { status: 404 },
       );
     }
 
-    console.error('Scorecard lookup error:', error);
+    console.error('[lookup-route] unexpected error:', error);
     return NextResponse.json(
       { error: 'Failed to look up course data. Please try again or add manually.' },
       { status: 500 },
