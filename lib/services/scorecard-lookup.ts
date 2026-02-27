@@ -65,8 +65,8 @@ async function googleSearch(query: string, numResults = 5): Promise<SearchItem[]
   const apiKey = process.env.GOOGLE_SEARCH_API_KEY;
   const cx = process.env.GOOGLE_SEARCH_ENGINE_ID;
   if (!apiKey || !cx) {
-    console.warn('[scorecard-lookup] Google Search skipped — GOOGLE_SEARCH_API_KEY:', !!apiKey, 'GOOGLE_SEARCH_ENGINE_ID:', !!cx);
-    return [];
+    console.error('[scorecard-lookup] ❌ Google Search keys missing — GOOGLE_SEARCH_API_KEY:', !!apiKey, 'GOOGLE_SEARCH_ENGINE_ID:', !!cx);
+    throw new Error('Google Search is not configured (missing API key or engine ID).');
   }
 
   const url =
@@ -82,14 +82,16 @@ async function googleSearch(query: string, numResults = 5): Promise<SearchItem[]
     if (!res.ok) {
       const body = await res.text().catch(() => '(empty)');
       console.error('[scorecard-lookup] Google Search error', res.status, ':', body.slice(0, 200));
-      return [];
+      throw new Error(`Google Search API error (${res.status}). Check API key and quota.`);
     }
     const data = await res.json();
     console.log('[scorecard-lookup] Google Search returned', (data.items ?? []).length, 'results');
     return (data.items ?? []) as SearchItem[];
   } catch (err) {
+    // 重新抛出我们自己的错误
+    if (err instanceof Error && err.message.startsWith('Google Search')) throw err;
     console.error('[scorecard-lookup] Google Search fetch error:', err);
-    return [];
+    throw new Error('Google Search request failed — check network or API key.');
   }
 }
 

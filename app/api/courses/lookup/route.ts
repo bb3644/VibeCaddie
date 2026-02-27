@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       'No tee data',
       'No complete tee data',
       'Failed to parse scorecard',
+      'Google Search',
     ];
     if (userFacingPrefixes.some((p) => message.startsWith(p))) {
       return NextResponse.json(
