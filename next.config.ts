@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   env: {
     DATABASE_URL: process.env.DATABASE_URL,
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
-    SITE_PASSCODE: process.env.SITE_PASSCODE,
   },
 };
 
