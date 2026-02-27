@@ -30,17 +30,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 球场未找到 or 无完整数据
-    if (message.startsWith('Course not found') || message.startsWith('Course found but')) {
+    // 已知的用户可见错误 — 直接透传
+    const userFacingPrefixes = [
+      'Course not found',
+      'No search results',
+      'No tee data',
+      'No complete tee data',
+      'Failed to parse scorecard',
+    ];
+    if (userFacingPrefixes.some((p) => message.startsWith(p))) {
       return NextResponse.json(
         { error: message },
         { status: 404 },
       );
     }
 
+    // 未预期的错误 — 日志记录完整信息，前端显示摘要
     console.error('[lookup-route] unexpected error:', error);
     return NextResponse.json(
-      { error: 'Failed to look up course data. Please try again or add manually.' },
+      { error: `Lookup failed: ${message.slice(0, 120)}` },
       { status: 500 },
     );
   }
