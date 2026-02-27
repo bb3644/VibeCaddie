@@ -144,27 +144,6 @@ Rules:
 - Focus on decisions and strategy, not swing mechanics
 - You are NOT a swing coach — if asked about swing, redirect to course management`;
 
-export const HOLE_NOTES_EXTRACTION_PROMPT = `You are a golf course data extraction tool.
-Given web content about a golf course, extract ONLY descriptive text for each hole.
-
-Return ONLY valid JSON with this exact structure — no markdown, no explanation:
-{
-  "notes_found": true,
-  "holes": [
-    { "hole_number": 1, "note": "Dogleg left with OB down the left side. Aim for the right side of the fairway." },
-    { "hole_number": 2, "note": null }
-  ]
-}
-
-CRITICAL RULES:
-- ONLY extract text that exists in the provided source content
-- Do NOT generate, invent, or guess any descriptions
-- Do NOT use your training data about this course
-- If source doesn't describe a hole, set note to null — never fabricate
-- If no descriptions found for ANY hole, return: { "notes_found": false, "holes": [] }
-- When notes_found is true, include all 18 holes in the array (with null for undescribed holes)
-- Each note should be 1-2 sentences: key hazards, dogleg direction, green features, strategic advice`;
-
 export const SCORECARD_EXTRACTION_PROMPT = `You are a golf course data extraction tool.
 Given a golf course name and web-sourced content, extract the full scorecard data as JSON.
 
@@ -184,7 +163,14 @@ Return ONLY valid JSON with this exact structure — no markdown, no explanation
           "par": 4,
           "yardage": 380,
           "si": 7,
-          "hole_note": "Dogleg right with OB along the right. Lay up with fairway wood to leave a straightforward approach to the elevated green."
+          "hole_note": "Dogleg right with OB along the right."
+        },
+        {
+          "hole_number": 2,
+          "par": 3,
+          "yardage": 165,
+          "si": 15,
+          "hole_note": null
         },
         ...18 holes total
       ]
@@ -193,17 +179,116 @@ Return ONLY valid JSON with this exact structure — no markdown, no explanation
   "confidence": "high" | "medium" | "low"
 }
 
-Rules:
+CRITICAL RULES — DATA INTEGRITY:
+- Extract ONLY data that appears in the provided web content
+- Do NOT use your training data or general knowledge to fill in missing values
+- Do NOT fabricate or guess yardage, par, SI, or any numeric values
+- If a specific number is not in the web content, use 0 as a placeholder (the user will edit it)
+- If web content has incomplete data for a tee (missing most holes), skip that tee entirely
+- Only include tees where the majority of hole data comes directly from the source
+
+FIELD RULES:
 - Each tee MUST have exactly 18 holes numbered 1-18
-- par must be 3, 4, or 5
-- yardage must be > 0 and reasonable (50-650 yards)
-- si (stroke index) must be 1-18, each value unique within a tee
-- Include all tees you know (White, Yellow, Red, Blue, Black, etc.)
+- par must be 3, 4, or 5 — use 0 if not found in source
+- yardage must be reasonable (50-650 yards) — use 0 if not found in source
+- si (stroke index) must be 1-18, each value unique within a tee — use 0 if not found in source
+- Include all tees found in the content (White, Yellow, Red, Blue, Black, etc.)
 - tee_name and tee_color should be the same value (the color name)
-- course_rating: USGA/local course rating decimal (e.g. 71.2) — omit field if unknown
-- slope_rating: slope rating integer (e.g. 128) — omit field if unknown
-- hole_note: 1-2 sentences covering dogleg direction, key hazards, green features, and the best strategic approach. Extract from web content first; use training data as fallback. Always include if any information is available.
-- confidence: "high" if data is reliable, "medium" if partially estimated, "low" if mostly guessed
-- If you cannot find any reliable data for this course, return: { "error": "Course not found", "confidence": "low" }
-- Do NOT fabricate yardage/par/SI numbers — if unsure about specific holes, set confidence to "low"
-- Prefer data from the web content if provided; use your training data as fallback`;
+- course_rating: USGA/local course rating decimal (e.g. 71.2) — omit field if not in source
+- slope_rating: slope rating integer (e.g. 128) — omit field if not in source
+- hole_note: 1-2 sentences ONLY if the web content describes the hole. Set to null if no description found — never invent.
+- confidence: "high" if all numbers come directly from source, "medium" if some values are 0 placeholders, "low" if most data is missing
+- If you cannot find any scorecard data in the web content, return: { "error": "Course not found", "confidence": "low" }`;
+
+export const SCORECARD_OCR_PROMPT = `You are a golf scorecard OCR extraction tool.
+Given a photo of a golf scorecard, extract all visible data as JSON.
+
+Return ONLY valid JSON with this exact structure — no markdown, no explanation:
+{
+  "course_name": "Course Name (if visible)",
+  "location": "",
+  "tees": [
+    {
+      "tee_name": "White",
+      "tee_color": "White",
+      "course_rating": 71.2,
+      "slope_rating": 128,
+      "holes": [
+        { "hole_number": 1, "par": 4, "yardage": 380, "si": 7 },
+        ...18 holes
+      ]
+    }
+  ],
+  "confidence": "high" | "medium" | "low"
+}
+
+CRITICAL RULES — DATA INTEGRITY:
+- Extract ONLY numbers visible in the photo — never guess, fabricate, or use knowledge about the course
+- If a number is blurry or not readable, use 0 as a placeholder — the user will edit it later
+- Do NOT fill in values from your training data — only use what is visible in the image
+
+FIELD RULES:
+- Each tee MUST have exactly 18 holes numbered 1-18
+- par: 3, 4, or 5 — use 0 if not readable
+- yardage: use 0 if not readable
+- si (stroke index): 1-18 — use 0 if not readable
+- Include all tees visible on the scorecard
+- course_name: extract from photo if visible, otherwise set to empty string
+- confidence: "high" if all values clearly readable, "medium" if some are 0 placeholders, "low" if many are unreadable
+- If the photo does not contain a scorecard, return: { "error": "No scorecard detected", "confidence": "low" }`;
+
+// ---------- Vision LLM Client ----------
+
+export async function callLLMWithImage(
+  systemPrompt: string,
+  textPrompt: string,
+  imageBase64: string,
+  mimeType: string,
+  config?: LLMConfig,
+): Promise<LLMResponse> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENROUTER_API_KEY is not configured');
+  }
+
+  // gemini-2.0-flash 支持 vision
+  const model = process.env.OPENROUTER_VISION_MODEL || process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-001';
+
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': process.env.NEXTAUTH_URL || 'http://localhost:3000',
+      'X-Title': 'Vibe Caddie',
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: textPrompt },
+            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
+          ],
+        },
+      ],
+      max_tokens: config?.max_tokens ?? 4000,
+      temperature: config?.temperature ?? 0,
+    }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`OpenRouter Vision API error: ${res.status} — ${errorText}`);
+  }
+
+  const data = await res.json();
+
+  if (!data.choices?.[0]?.message?.content) {
+    throw new Error('OpenRouter returned empty response');
+  }
+
+  return { content: data.choices[0].message.content };
+}

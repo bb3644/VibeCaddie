@@ -26,8 +26,8 @@ interface LookupResult {
   location: string;
   tees: LookupTee[];
   confidence: "high" | "medium" | "low";
-  scorecard_source: "golfcourseapi";
-  notes_source_url?: string;
+  source: "google_search" | "photo_ocr" | "manual";
+  source_url?: string;
 }
 
 type ImportState = "idle" | "searching" | "preview" | "saving";
@@ -198,11 +198,10 @@ export function TeeImportPanel({
               {availableTees.length !== 1 ? "s" : ""} found. Select one to
               import:
             </p>
-            <p className="text-[0.75rem] text-green-700">Scorecard: GolfCourseAPI ✓</p>
             <p className="text-[0.75rem] text-secondary">
-              {lookupResult?.notes_source_url
-                ? `Hole notes: ${lookupResult.notes_source_url}`
-                : "Hole notes: not found"}
+              {lookupResult?.source_url
+                ? `Source: ${lookupResult.source_url}`
+                : "Source: Google Search"}
             </p>
           </div>
 
