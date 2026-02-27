@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { LoginForm } from "@/components/auth/login-form";
 
@@ -6,12 +5,8 @@ export const metadata = {
   title: "Sign in — Vibe Caddie",
 };
 
-/** 登录页面 */
+/** Passcode 登录页 */
 export default function LoginPage() {
-  // TODO: 移除 preview bypass
-  if (process.env.SKIP_AUTH === "true") {
-    redirect("/dashboard");
-  }
   return (
     <main className="min-h-dvh flex items-center justify-center bg-bg px-4">
       <Card className="w-full max-w-[400px]">

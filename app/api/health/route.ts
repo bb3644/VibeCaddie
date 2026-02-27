@@ -6,7 +6,7 @@ export async function GET() {
   const checks: Record<string, string> = {};
 
   // 1. 环境变量检查
-  checks.skip_auth = process.env.SKIP_AUTH ?? "NOT_SET";
+  checks.site_passcode = process.env.SITE_PASSCODE ? "SET" : "NOT_SET";
   checks.database_url = process.env.DATABASE_URL ? "SET" : "NOT_SET";
   checks.node_env = process.env.NODE_ENV ?? "NOT_SET";
 

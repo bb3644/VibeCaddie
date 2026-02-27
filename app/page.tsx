@@ -1,16 +1,14 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
 import Link from "next/link";
 
 export default async function Home() {
-  // TODO: 移除 preview bypass
-  if (process.env.SKIP_AUTH === "true") {
-    redirect("/dashboard");
-  }
+  const cookieStore = await cookies();
+  const hasPasscode = cookieStore.get("site_passcode")?.value;
+  const hasUserId = cookieStore.get("user_id")?.value;
 
-  const session = await getServerSession();
-
-  if (session) {
+  // 两个 cookie 都有 → 直接进 dashboard
+  if (hasPasscode && hasUserId) {
     redirect("/dashboard");
   }
 

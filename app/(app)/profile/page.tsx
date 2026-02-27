@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { BagEditor } from "@/components/profile/bag-editor";
 import { DistanceEditor } from "@/components/profile/distance-editor";
@@ -13,12 +15,22 @@ import type {
 } from "@/lib/db/types";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [bagClubs, setBagClubs] = useState<PlayerBagClub[]>([]);
   const [distances, setDistances] = useState<PlayerClubDistance[]>([]);
   const [enabledCodes, setEnabledCodes] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  async function switchProfile() {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scope: "profile" }),
+    });
+    router.push("/select-profile");
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -81,9 +93,14 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-[1.875rem] font-semibold text-text">
-        Profile & Settings
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-[1.875rem] font-semibold text-text">
+          Profile & Settings
+        </h1>
+        <Button variant="ghost" onClick={switchProfile} className="text-[0.8125rem]">
+          切换球员
+        </Button>
+      </div>
 
       {/* 个人信息 */}
       <Card>

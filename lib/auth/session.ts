@@ -1,22 +1,9 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "./config";
+import { cookies } from "next/headers";
 
-/** 获取已认证的 session，未登录则抛出错误 */
-export async function getRequiredSession() {
-  // TODO: 恢复 auth guard（临时关闭用于预览）
-  if (process.env.SKIP_AUTH === "true") {
-    return { user: { id: "00000000-0000-0000-0000-000000000001", name: "Preview User", email: "preview@example.com" } };
-  }
-
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-  return session;
-}
-
-/** 获取当前登录用户的 ID */
+/** 从 cookie 获取当前用户 ID */
 export async function getUserId(): Promise<string> {
-  const session = await getRequiredSession();
-  return session.user.id;
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("user_id")?.value;
+  if (!userId) throw new Error("Unauthorized");
+  return userId;
 }

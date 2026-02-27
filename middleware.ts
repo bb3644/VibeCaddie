@@ -1,19 +1,28 @@
-import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
-/** 保护 /(app)/ 路由组：未认证用户重定向到 /login */
-export default async function middleware(req: NextRequest) {
-  // TODO: 恢复 auth guard（临时关闭用于预览）
-  if (process.env.SKIP_AUTH === "true") {
-    return NextResponse.next();
+/**
+ * 双层 cookie 守卫：
+ * 1. site_passcode — 网站访问凭证
+ * 2. user_id — 选定的球员 profile
+ */
+export default function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const passcode = req.cookies.get("site_passcode")?.value;
+  const userId = req.cookies.get("user_id")?.value;
+
+  // /select-profile 只需 passcode，不需 user_id
+  const isSelectProfile = pathname === "/select-profile";
+
+  // 检查 passcode
+  if (passcode !== process.env.SITE_PASSCODE) {
+    const loginUrl = new URL("/login", req.url);
+    return NextResponse.redirect(loginUrl);
   }
 
-  const token = await getToken({ req });
-
-  if (!token) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("callbackUrl", req.url);
-    return NextResponse.redirect(loginUrl);
+  // 有 passcode 但无 user_id → 去选 profile（除非已经在选择页）
+  if (!userId && !isSelectProfile) {
+    const selectUrl = new URL("/select-profile", req.url);
+    return NextResponse.redirect(selectUrl);
   }
 
   return NextResponse.next();
@@ -27,5 +36,6 @@ export const config = {
     "/rounds/:path*",
     "/briefing/:path*",
     "/chat/:path*",
+    "/select-profile",
   ],
 };

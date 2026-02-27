@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { NavItem } from "./bottom-nav";
 
 interface SidebarNavProps {
@@ -54,6 +54,16 @@ function SidebarIcon({ icon, active }: { icon: NavItem["icon"]; active: boolean 
 /** 桌面端左侧导航栏，仅在 >= 1024px 屏幕显示 */
 export function SidebarNav({ items }: SidebarNavProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function switchProfile() {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scope: "profile" }),
+    });
+    router.push("/select-profile");
+  }
 
   return (
     <aside className="fixed left-0 top-0 bottom-0 z-50 hidden lg:flex flex-col w-[240px] border-r border-divider bg-card">
@@ -90,6 +100,28 @@ export function SidebarNav({ items }: SidebarNavProps) {
           );
         })}
       </nav>
+
+      {/* 切换球员 */}
+      <div className="px-3 pb-4">
+        <button
+          onClick={switchProfile}
+          className="
+            flex items-center gap-3
+            w-full px-3 py-2.5 rounded-lg
+            text-[0.875rem] font-medium text-secondary
+            hover:bg-bg hover:text-text
+            transition-colors duration-150
+            cursor-pointer
+          "
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="8.5" cy="7" r="4" />
+            <polyline points="17 11 19 13 23 9" />
+          </svg>
+          <span>切换球员</span>
+        </button>
+      </div>
     </aside>
   );
 }
