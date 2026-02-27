@@ -52,14 +52,49 @@ interface GolfCourseAPICourse {
   id: number;
   club_name: string;
   course_name: string;
-  location: { city?: string; state?: string; country?: string };
+  location: { address?: string; city?: string; state?: string; country?: string };
   tees: {
     male: GolfCourseAPITee[];
     female: GolfCourseAPITee[];
   };
 }
 
-async function searchGolfCourseAPI(name: string): Promise<GolfCourseAPICourse | null> {
+/** 展开 location hint 的同义词，让 "London" 也能匹配 "LND"、"England"、"United Kingdom" 等 */
+const LOCATION_SYNONYMS: Record<string, string[]> = {
+  london: ['lnd', 'england', 'united kingdom', 'uk', 'wembley', 'croydon', 'surrey', 'essex', 'kent', 'middlesex'],
+  england: ['united kingdom', 'uk', 'eng'],
+  scotland: ['united kingdom', 'uk', 'sct'],
+  wales: ['united kingdom', 'uk', 'wls'],
+  uk: ['united kingdom', 'england', 'scotland', 'wales'],
+  usa: ['united states', 'us'],
+  us: ['united states', 'usa'],
+};
+
+/** 对 location 字符串做匹配评分 */
+function locationMatchScore(course: GolfCourseAPICourse, locationHint: string): number {
+  const loc = course.location ?? {};
+  const parts = [loc.city, loc.state, loc.country, loc.address]
+    .filter(Boolean)
+    .map((s) => s!.toLowerCase());
+  const partsJoined = parts.join(' ');
+
+  let score = 0;
+  const tokens = locationHint.toLowerCase().split(/[\s,]+/).filter(Boolean);
+
+  // 展开同义词
+  const expanded = new Set(tokens);
+  for (const token of tokens) {
+    const synonyms = LOCATION_SYNONYMS[token];
+    if (synonyms) synonyms.forEach((s) => expanded.add(s));
+  }
+
+  for (const token of expanded) {
+    if (partsJoined.includes(token)) score += 1;
+  }
+  return score;
+}
+
+async function searchGolfCourseAPI(name: string, location?: string): Promise<GolfCourseAPICourse | null> {
   const apiKey = process.env.GOLF_COURSE_API_KEY;
   if (!apiKey) {
     console.error('[scorecard-lookup] ❌ GOLF_COURSE_API_KEY not set — check Amplify env vars');
@@ -84,7 +119,22 @@ async function searchGolfCourseAPI(name: string): Promise<GolfCourseAPICourse | 
     console.log('[scorecard-lookup] GolfCourseAPI raw response:', JSON.stringify(data, null, 2));
     const courses = (data.courses ?? []) as GolfCourseAPICourse[];
     console.log('[scorecard-lookup] GolfCourseAPI returned', courses.length, 'courses');
-    return courses.length > 0 ? courses[0] : null;
+
+    if (courses.length === 0) return null;
+    if (courses.length === 1 || !location) return courses[0];
+
+    // 多条结果 + 有 location hint → 按位置匹配评分选最佳
+    const scored = courses.map((c) => ({
+      course: c,
+      score: locationMatchScore(c, location),
+      loc: [c.location?.city, c.location?.country].filter(Boolean).join(', '),
+    }));
+    scored.sort((a, b) => b.score - a.score);
+    console.log('[scorecard-lookup] location matching (' + location + '):', scored.map(
+      (s) => `${s.course.club_name} [${s.loc}] → score ${s.score}`
+    ).join(' | '));
+
+    return scored[0].course;
   } catch (err) {
     console.error('[scorecard-lookup] GolfCourseAPI fetch error:', err);
     return null;
@@ -271,8 +321,8 @@ export async function lookupCourseScorecard(
   location?: string,
 ): Promise<LookupResult> {
   // 1. GolfCourseAPI 查找（数字权威来源）
-  console.log('[scorecard-lookup] USING GolfCourseAPI for:', name);
-  const apiCourse = await searchGolfCourseAPI(name);
+  console.log('[scorecard-lookup] USING GolfCourseAPI for:', name, location ? `(location hint: ${location})` : '');
+  const apiCourse = await searchGolfCourseAPI(name, location);
   if (!apiCourse) {
     console.log('[scorecard-lookup] GolfCourseAPI returned no results for:', name);
     throw new Error('Course not found in database — please add manually.');
