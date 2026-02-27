@@ -46,6 +46,22 @@ export default function SelectProfilePage() {
     }
   }
 
+  async function deleteProfile(userId: string, name: string) {
+    if (!confirm(`确定删除「${name}」？所有打球记录都会被清除，不可恢复。`)) return;
+    try {
+      const res = await fetch("/api/profiles", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId }),
+      });
+      if (res.ok) {
+        setProfiles((prev) => prev.filter((p) => p.user_id !== userId));
+      }
+    } catch {
+      // 静默失败
+    }
+  }
+
   async function createProfile() {
     if (!newName.trim()) return;
     setCreating(true);
@@ -82,22 +98,36 @@ export default function SelectProfilePage() {
         ) : (
           <div className="flex flex-col gap-2">
             {profiles.map((p) => (
-              <button
+              <div
                 key={p.user_id}
-                onClick={() => selectProfile(p.user_id)}
-                disabled={selecting !== null}
                 className={`
-                  w-full text-left px-4 py-3 rounded-lg
-                  border border-divider
-                  text-[0.9375rem] font-medium text-text
+                  flex items-center gap-2
+                  rounded-lg border border-divider
                   hover:bg-bg hover:border-accent
                   transition-colors duration-150
-                  disabled:opacity-50 cursor-pointer
                   ${selecting === p.user_id ? "border-accent bg-accent/5" : ""}
                 `}
               >
-                {selecting === p.user_id ? "进入中..." : p.name}
-              </button>
+                <button
+                  onClick={() => selectProfile(p.user_id)}
+                  disabled={selecting !== null}
+                  className="flex-1 text-left px-4 py-3 text-[0.9375rem] font-medium text-text disabled:opacity-50 cursor-pointer"
+                >
+                  {selecting === p.user_id ? "进入中..." : p.name}
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteProfile(p.user_id, p.name); }}
+                  className="px-3 py-3 text-secondary hover:text-red-500 transition-colors cursor-pointer"
+                  title="删除"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                  </svg>
+                </button>
+              </div>
             ))}
           </div>
         )}

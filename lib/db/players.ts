@@ -118,6 +118,19 @@ export async function updateVibecaddieIndex(userId: string, index: number): Prom
 }
 
 /**
+ * 删除球员档案及所有关联数据
+ */
+export async function deletePlayerProfile(userId: string): Promise<void> {
+  // 先删除无级联外键的关联表
+  await query('DELETE FROM player_hole_history WHERE user_id = $1', [userId]);
+  await query('DELETE FROM round_holes WHERE round_id IN (SELECT id FROM rounds WHERE user_id = $1)', [userId]);
+  await query('DELETE FROM rounds WHERE user_id = $1', [userId]);
+  await query('DELETE FROM pre_round_briefings WHERE user_id = $1', [userId]);
+  // player_bag_clubs 和 player_club_distances 有 ON DELETE CASCADE，删 profile 自动清理
+  await query('DELETE FROM player_profiles WHERE user_id = $1', [userId]);
+}
+
+/**
  * 获取球员在某球场 tee 台的历史打球数据（按洞）
  */
 export async function getPlayerHoleHistory(
