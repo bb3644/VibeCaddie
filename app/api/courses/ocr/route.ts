@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserId } from '@/lib/auth/session';
 import { callLLMWithImage, SCORECARD_OCR_PROMPT } from '@/lib/services/llm';
-import type { LookupResult } from '@/lib/services/scorecard-lookup';
+import type { LookupResult } from '@/lib/types/scorecard';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB

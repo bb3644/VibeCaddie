@@ -2,32 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-
-interface LookupHole {
-  hole_number: number;
-  par: number;
-  yardage: number;
-  si: number;
-  hole_note?: string;
-}
-
-interface LookupTee {
-  tee_name: string;
-  tee_color: string;
-  par_total: number;
-  course_rating?: number;
-  slope_rating?: number;
-  holes: LookupHole[];
-}
-
-interface LookupResult {
-  course_name: string;
-  location: string;
-  tees: LookupTee[];
-  confidence: "high" | "medium" | "low";
-  source: "google_search" | "photo_ocr" | "manual";
-  source_url?: string;
-}
+import type { LookupResult } from "@/lib/types/scorecard";
 
 interface PhotoUploadProps {
   onResult: (result: LookupResult) => void;

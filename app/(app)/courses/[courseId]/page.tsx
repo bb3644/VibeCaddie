@@ -9,7 +9,6 @@ import { SectionTitle } from "@/components/ui/section-title";
 import { InfoBanner } from "@/components/ui/info-banner";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { TeeImportPanel } from "@/components/course/tee-import-panel";
 import type { Course, CourseTee } from "@/lib/db/types";
 
 const TEE_OPTIONS = [
@@ -62,7 +61,6 @@ export default function CourseDetailPage() {
 
   // 添加 / 导入 tee 的面板状态
   const [showAddTee, setShowAddTee] = useState(false);
-  const [showImportTee, setShowImportTee] = useState(false);
   const [teeColor, setTeeColor] = useState("");
   const [parTotal, setParTotal] = useState("");
   const [courseRating, setCourseRating] = useState("");
@@ -484,28 +482,10 @@ export default function CourseDetailPage() {
             </Button>
           </div>
         </div>
-      ) : showImportTee ? (
-        <TeeImportPanel
-          courseId={courseId}
-          courseName={course.name}
-          existingTees={course.tees}
-          onImported={(newTee) => {
-            setCourse((prev) =>
-              prev ? { ...prev, tees: [...prev.tees, newTee] } : prev
-            );
-            setShowImportTee(false);
-          }}
-          onCancel={() => setShowImportTee(false)}
-        />
       ) : (
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => setShowAddTee(true)}>
-            + Add Tee
-          </Button>
-          <Button variant="secondary" onClick={() => setShowImportTee(true)}>
-            Search &amp; Import Tee
-          </Button>
-        </div>
+        <Button variant="secondary" onClick={() => setShowAddTee(true)}>
+          + Add Tee
+        </Button>
       )}
 
       {/* 计划一轮的快捷入口 */}

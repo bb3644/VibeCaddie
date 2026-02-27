@@ -2,40 +2,23 @@
 
 import { useState } from "react";
 import { CourseForm } from "@/components/course/course-form";
-import { CourseLookup } from "@/components/course/course-lookup";
 import { PhotoUpload } from "@/components/course/photo-upload";
 import { ScorecardPreview } from "@/components/course/scorecard-preview";
+import type { LookupResult } from "@/lib/types/scorecard";
 
-type Tab = "search" | "photo" | "manual";
-
-// 从子组件传入的原始数据（不含 selected）
-interface RawLookupResult {
-  course_name: string;
-  location: string;
-  tees: {
-    tee_name: string;
-    tee_color: string;
-    par_total: number;
-    course_rating?: number;
-    slope_rating?: number;
-    holes: { hole_number: number; par: number; yardage: number; si: number; hole_note?: string }[];
-  }[];
-  confidence: "high" | "medium" | "low";
-  source: "google_search" | "photo_ocr" | "manual";
-  source_url?: string;
-}
+type Tab = "photo" | "manual";
 
 // 带 selected 的预览数据
-interface PreviewResult extends Omit<RawLookupResult, "tees"> {
-  tees: (RawLookupResult["tees"][number] & { selected: boolean })[];
+interface PreviewResult extends Omit<LookupResult, "tees"> {
+  tees: (LookupResult["tees"][number] & { selected: boolean })[];
 }
 
 export default function NewCoursePage() {
-  const [tab, setTab] = useState<Tab>("search");
+  const [tab, setTab] = useState<Tab>("photo");
   const [result, setResult] = useState<PreviewResult | null>(null);
 
-  // 搜索/OCR 成功后：给每个 tee 加 selected 标记
-  function handleResult(data: RawLookupResult) {
+  // OCR 成功后：给每个 tee 加 selected 标记
+  function handleResult(data: LookupResult) {
     const tees = data.tees.map((t) => ({ ...t, selected: true }));
     setResult({ ...data, tees });
   }
@@ -73,14 +56,13 @@ export default function NewCoursePage() {
           Add a Course
         </h1>
         <p className="text-[0.9375rem] text-secondary mt-1">
-          Search online, upload a scorecard photo, or add manually.
+          Upload a scorecard photo or add a course manually.
         </p>
       </div>
 
       {/* Tab 切换 */}
       <div className="flex gap-1 rounded-lg bg-bg p-1">
         {([
-          { key: "search", label: "Search Online" },
           { key: "photo", label: "Upload Photo" },
           { key: "manual", label: "Enter Manually" },
         ] as const).map(({ key, label }) => (
@@ -99,7 +81,6 @@ export default function NewCoursePage() {
         ))}
       </div>
 
-      {tab === "search" && <CourseLookup onResult={handleResult} />}
       {tab === "photo" && <PhotoUpload onResult={handleResult} />}
       {tab === "manual" && <CourseForm />}
     </div>

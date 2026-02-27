@@ -7,33 +7,16 @@ import { SectionTitle } from "@/components/ui/section-title";
 import { Card } from "@/components/ui/card";
 import type { Course, CourseTee } from "@/lib/db/types";
 
+import type { LookupHole, LookupTee as BaseLookupTee, LookupResult as BaseLookupResult } from "@/lib/types/scorecard";
+
 // ---------- Types ----------
 
-interface LookupHole {
-  hole_number: number;
-  par: number;
-  yardage: number;
-  si: number;
-  hole_note?: string;
-}
-
-interface LookupTee {
-  tee_name: string;
-  tee_color: string;
-  par_total: number;
-  course_rating?: number;
-  slope_rating?: number;
-  holes: LookupHole[];
+interface LookupTee extends BaseLookupTee {
   selected: boolean;
 }
 
-interface LookupResult {
-  course_name: string;
-  location: string;
+interface LookupResult extends Omit<BaseLookupResult, "tees"> {
   tees: LookupTee[];
-  confidence: "high" | "medium" | "low";
-  source: "google_search" | "photo_ocr" | "manual";
-  source_url?: string;
 }
 
 export interface ScorecardPreviewProps {
@@ -191,13 +174,6 @@ function EditableScorecardTable({
 // ---------- Source Label ----------
 
 function SourceLabel({ result }: { result: LookupResult }) {
-  if (result.source === "google_search") {
-    return (
-      <p className="text-[0.75rem] text-secondary">
-        Source: {result.source_url || "Google Search"}
-      </p>
-    );
-  }
   if (result.source === "photo_ocr") {
     return (
       <p className="text-[0.75rem] text-secondary">

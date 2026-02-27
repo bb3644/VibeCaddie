@@ -8,8 +8,6 @@ const nextConfig: NextConfig = {
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
-    GOOGLE_SEARCH_API_KEY: process.env.GOOGLE_SEARCH_API_KEY,
-    GOOGLE_SEARCH_ENGINE_ID: process.env.GOOGLE_SEARCH_ENGINE_ID,
   },
 };
 
