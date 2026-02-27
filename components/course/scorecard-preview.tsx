@@ -252,6 +252,11 @@ export function ScorecardPreview({
 
   // ---- 保存 ----
   async function handleSave(forceNew = false) {
+    if (!result.course_name.trim()) {
+      setError("Course name is required.");
+      return;
+    }
+
     const selectedTees = result.tees.filter((t) => t.selected);
     if (selectedTees.length === 0) {
       setError("Please select at least one tee to save.");
@@ -339,16 +344,26 @@ export function ScorecardPreview({
   return (
     <div className="flex flex-col gap-6">
       {/* 头部信息 */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <h2 className="text-[1.25rem] font-semibold text-text">
-            {result.course_name}
-          </h2>
+          <input
+            type="text"
+            value={result.course_name}
+            onChange={(e) => onResultChange({ ...result, course_name: e.target.value })}
+            placeholder="Course name (required)"
+            className={`text-[1.25rem] font-semibold bg-transparent border-b-2 outline-none flex-1 min-w-0 ${
+              result.course_name.trim() ? "text-text border-transparent focus:border-accent" : "text-red-400 border-red-300"
+            }`}
+          />
           <ConfidenceBadge level={result.confidence} />
         </div>
-        {result.location && (
-          <p className="text-[0.875rem] text-secondary">{result.location}</p>
-        )}
+        <input
+          type="text"
+          value={result.location}
+          onChange={(e) => onResultChange({ ...result, location: e.target.value })}
+          placeholder="Location (optional)"
+          className="text-[0.875rem] text-secondary bg-transparent border-b border-transparent focus:border-accent outline-none"
+        />
         <SourceLabel result={result} />
         {mergeTarget && (
           <p className="text-[0.8125rem] text-accent font-medium">
