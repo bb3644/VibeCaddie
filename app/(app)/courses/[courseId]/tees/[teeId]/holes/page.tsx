@@ -8,9 +8,28 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { HoleEditor } from "@/components/course/hole-editor";
 import type { Course, CourseTee } from "@/lib/db/types";
+import type { LookupResult } from "@/lib/types/scorecard";
 
 interface CourseWithTees extends Course {
   tees: CourseTee[];
+}
+
+interface OcrHole {
+  hole_number: number;
+  par: number;
+  yardage: number;
+  si?: number;
+  hole_note?: string;
+}
+
+interface PendingImage {
+  id: string;
+  file: File;
+  preview: string;
+  status: "idle" | "extracting" | "done" | "error";
+  error?: string;
+  result?: LookupResult;
+  selectedTeeIdx: number;
 }
 
 export default function HolesPage() {
@@ -20,19 +39,19 @@ export default function HolesPage() {
   const courseId = params.courseId as string;
   const teeId = params.teeId as string;
 
-  // 优先从 URL query 取名字（创建后跳转时带过来），fallback 到 API
-  const [courseName, setCourseName] = useState(
-    searchParams.get("course") ?? ""
-  );
+  const [courseName, setCourseName] = useState(searchParams.get("course") ?? "");
   const [teeName, setTeeName] = useState(searchParams.get("tee") ?? "");
   const [location, setLocation] = useState(searchParams.get("loc") ?? "");
   const [loading, setLoading] = useState(true);
 
-  // CR / SL 状态
   const [courseRating, setCourseRating] = useState("");
   const [slopeRating, setSlopeRating] = useState("");
   const [savingRating, setSavingRating] = useState(false);
   const [ratingFeedback, setRatingFeedback] = useState("");
+
+  // Photo upload state
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
+  const [fillFromOcr, setFillFromOcr] = useState<OcrHole[] | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -52,7 +71,7 @@ export default function HolesPage() {
           }
         }
       } catch {
-        // 加载失败
+        // silent
       } finally {
         setLoading(false);
       }
@@ -86,6 +105,70 @@ export default function HolesPage() {
       setSavingRating(false);
       setTimeout(() => setRatingFeedback(""), 3000);
     }
+  }
+
+  function addImage(file: File) {
+    setPendingImages((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), file, preview: URL.createObjectURL(file), status: "idle", selectedTeeIdx: 0 },
+    ]);
+  }
+
+  async function extractAll() {
+    const toExtract = pendingImages.filter((i) => i.status === "idle" || i.status === "error");
+    if (toExtract.length === 0) return;
+
+    // Mark all as extracting
+    setPendingImages((prev) =>
+      prev.map((i) =>
+        i.status === "idle" || i.status === "error" ? { ...i, status: "extracting", error: undefined } : i
+      )
+    );
+
+    // Extract each in parallel
+    await Promise.all(
+      toExtract.map(async (img) => {
+        try {
+          const formData = new FormData();
+          formData.append("image", img.file);
+          const res = await fetch("/api/courses/ocr", { method: "POST", body: formData });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || "Extraction failed");
+          }
+          const result = (await res.json()) as LookupResult;
+          if (!result.tees || result.tees.length === 0) throw new Error("No scorecard data found.");
+          setPendingImages((prev) =>
+            prev.map((i) => (i.id === img.id ? { ...i, status: "done", result } : i))
+          );
+        } catch (err) {
+          setPendingImages((prev) =>
+            prev.map((i) => (i.id === img.id ? { ...i, status: "error", error: (err as Error).message } : i))
+          );
+        }
+      })
+    );
+  }
+
+  function applyToHoles() {
+    const merged: Record<number, OcrHole> = {};
+    for (const img of pendingImages) {
+      if (img.status !== "done" || !img.result) continue;
+      const tee = img.result.tees[img.selectedTeeIdx] ?? img.result.tees[0];
+      if (!tee?.holes) continue;
+      for (const hole of tee.holes) {
+        merged[hole.hole_number] = {
+          hole_number: hole.hole_number,
+          par: hole.par,
+          yardage: hole.yardage,
+          si: hole.si,
+          hole_note: hole.hole_note,
+        };
+      }
+    }
+    const arr = Object.values(merged).sort((a, b) => a.hole_number - b.hole_number);
+    if (arr.length > 0) setFillFromOcr(arr);
+    setPendingImages([]);
   }
 
   if (loading) {
@@ -130,6 +213,106 @@ export default function HolesPage() {
         notes. Approximate is fine. Other players can add what you missed.
       </InfoBanner>
 
+      {/* Scorecard Photo Upload */}
+      <div className="flex flex-col gap-3 p-4 rounded-lg border border-divider bg-white">
+        <p className="text-[0.875rem] font-medium text-text">Fill from scorecard photo</p>
+        <p className="text-[0.75rem] text-secondary -mt-1">
+          Upload photos of the scorecard. If it spans two images, add both before extracting.
+        </p>
+
+        {/* Image list */}
+        {pendingImages.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {pendingImages.map((img, idx) => (
+              <div key={img.id} className="flex items-center gap-3 p-2 rounded-md border border-divider bg-bg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.preview}
+                  alt={`Scorecard ${idx + 1}`}
+                  className="w-14 h-14 object-cover rounded border border-divider shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[0.8125rem] text-text truncate">{img.file.name}</p>
+                  {img.status === "extracting" && (
+                    <p className="text-[0.75rem] text-secondary mt-0.5">Extracting…</p>
+                  )}
+                  {img.status === "error" && (
+                    <p className="text-[0.75rem] text-red-500 mt-0.5">{img.error}</p>
+                  )}
+                  {img.status === "done" && img.result && (
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <p className="text-[0.75rem] text-accent font-medium">
+                        ✓ {img.result.tees.reduce((s, t) => s + (t.holes?.length ?? 0), 0)} holes found
+                      </p>
+                      {img.result.tees.length > 1 && (
+                        <select
+                          value={img.selectedTeeIdx}
+                          onChange={(e) => {
+                            const idx2 = parseInt(e.target.value, 10);
+                            setPendingImages((prev) =>
+                              prev.map((i) => (i.id === img.id ? { ...i, selectedTeeIdx: idx2 } : i))
+                            );
+                          }}
+                          className="text-[0.75rem] border border-divider rounded px-1.5 py-0.5 outline-none"
+                        >
+                          {img.result.tees.map((t, i) => (
+                            <option key={i} value={i}>
+                              {t.tee_name || t.tee_color || `Tee ${i + 1}`} ({t.holes?.length ?? 0} holes)
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => setPendingImages((prev) => prev.filter((i) => i.id !== img.id))}
+                  className="text-secondary hover:text-red-500 cursor-pointer shrink-0 p-1"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Upload / Add another button */}
+        <label className="self-start inline-flex items-center gap-1.5 text-[0.875rem] text-accent font-medium cursor-pointer hover:underline">
+          {pendingImages.length === 0 ? "Upload photos" : "+ Add another photo"}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onClick={(e) => { (e.currentTarget as HTMLInputElement).value = ""; }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) addImage(file);
+            }}
+          />
+        </label>
+
+        {/* Extract + Apply buttons */}
+        {pendingImages.length > 0 && (
+          <div className="flex gap-3 flex-wrap">
+            {pendingImages.some((i) => i.status === "idle" || i.status === "error") && (
+              <Button
+                onClick={extractAll}
+                disabled={pendingImages.some((i) => i.status === "extracting")}
+              >
+                {pendingImages.some((i) => i.status === "extracting")
+                  ? "Extracting… (may take 15s)"
+                  : "Extract scorecard"}
+              </Button>
+            )}
+            {pendingImages.every((i) => i.status === "done") && (
+              <Button onClick={applyToHoles}>
+                Apply to holes
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Course Rating & Slope Rating */}
       <div className="flex flex-col gap-2 p-4 rounded-lg border border-divider bg-white">
         <p className="text-[0.8125rem] font-medium text-text">
@@ -172,6 +355,7 @@ export default function HolesPage() {
       <HoleEditor
         courseId={courseId}
         teeId={teeId}
+        fillFromOcr={fillFromOcr}
         onFinish={() => {
           const qs = new URLSearchParams({
             done: "1",

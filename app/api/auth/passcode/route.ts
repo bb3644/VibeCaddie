@@ -5,8 +5,9 @@ export async function POST(request: NextRequest) {
   try {
     const { passcode } = await request.json();
 
-    if (!passcode || passcode !== process.env.SITE_PASSCODE) {
-      return NextResponse.json({ error: "密码错误" }, { status: 401 });
+    const sitePasscode = process.env.SITE_PASSCODE ?? process.env.SITE_PASSWORD;
+    if (!passcode || passcode !== sitePasscode) {
+      return NextResponse.json({ error: "Incorrect passcode." }, { status: 401 });
     }
 
     const res = NextResponse.json({ ok: true });

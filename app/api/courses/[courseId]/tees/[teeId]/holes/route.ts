@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserId } from "@/lib/auth/session";
-import { getCourseHoles, upsertCourseHole } from "@/lib/db/courses";
+import { getCourseHoles, upsertCourseHole, updateCourseTee } from "@/lib/db/courses";
 
 interface RouteContext {
   params: Promise<{ courseId: string; teeId: string }>;
@@ -67,6 +67,13 @@ export async function PUT(
         })
       )
     );
+
+    // Recalculate par_total from all saved holes for this tee
+    const allHoles = await getCourseHoles(teeId);
+    const parTotal = allHoles.reduce((sum, h) => sum + h.par, 0);
+    if (parTotal > 0) {
+      await updateCourseTee(teeId, { par_total: parTotal });
+    }
 
     return NextResponse.json(results);
   } catch (error) {

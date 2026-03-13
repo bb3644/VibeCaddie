@@ -14,7 +14,8 @@ export default function middleware(req: NextRequest) {
   const isSelectProfile = pathname === "/select-profile";
 
   // 检查 passcode
-  if (passcode !== process.env.SITE_PASSCODE) {
+  const sitePasscode = process.env.SITE_PASSCODE ?? process.env.SITE_PASSWORD;
+  if (passcode !== sitePasscode) {
     const loginUrl = new URL("/login", req.url);
     return NextResponse.redirect(loginUrl);
   }

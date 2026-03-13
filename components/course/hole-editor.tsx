@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { HoleRow } from "./hole-row";
@@ -27,19 +27,50 @@ function defaultHoles(): HoleState[] {
   }));
 }
 
+interface OcrHole {
+  hole_number: number;
+  par: number;
+  yardage: number;
+  si?: number;
+  hole_note?: string;
+}
+
 interface HoleEditorProps {
   courseId: string;
   teeId: string;
   onFinish?: () => void;
+  fillFromOcr?: OcrHole[] | null;
 }
 
 /** 球洞编辑器：18洞列表 + Save All */
-export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
+export function HoleEditor({ courseId, teeId, onFinish, fillFromOcr }: HoleEditorProps) {
   const [holes, setHoles] = useState<HoleState[]>(defaultHoles);
   const [officialNotes, setOfficialNotes] = useState<Record<number, OfficialHoleNote>>({});
+  const prevFillRef = useRef<OcrHole[] | null | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState("");
+
+  // Merge OCR data into holes whenever fillFromOcr changes
+  useEffect(() => {
+    if (!fillFromOcr || fillFromOcr === prevFillRef.current) return;
+    prevFillRef.current = fillFromOcr;
+    setHoles((prev) => {
+      const next = [...prev];
+      for (const ocrHole of fillFromOcr) {
+        const idx = ocrHole.hole_number - 1;
+        if (idx < 0 || idx >= TOTAL_HOLES) continue;
+        next[idx] = {
+          ...next[idx],
+          par: ocrHole.par,
+          yardage: ocrHole.yardage,
+          si: ocrHole.si ?? next[idx].si,
+          holeNote: ocrHole.hole_note ?? next[idx].holeNote,
+        };
+      }
+      return next;
+    });
+  }, [fillFromOcr]);
 
   const loadHoles = useCallback(async () => {
     try {

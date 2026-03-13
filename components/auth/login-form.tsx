@@ -25,13 +25,13 @@ export function LoginForm() {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "验证失败");
+        setError(data.error || "Incorrect passcode.");
         return;
       }
 
       router.push("/select-profile");
     } catch {
-      setError("网络错误，请重试");
+      setError("Network error, please try again.");
     } finally {
       setLoading(false);
     }
@@ -44,7 +44,7 @@ export function LoginForm() {
         type="password"
         value={passcode}
         onChange={setPasscode}
-        placeholder="输入访问密码"
+        placeholder="Enter passcode"
         error={error}
       />
       <Button
@@ -53,7 +53,7 @@ export function LoginForm() {
         disabled={loading || !passcode}
         className="w-full"
       >
-        {loading ? "验证中..." : "进入"}
+        {loading ? "Verifying..." : "Enter"}
       </Button>
     </div>
   );
