@@ -125,3 +125,31 @@ CREATE TABLE IF NOT EXISTS player_hole_history (
   avg_score DECIMAL(4,1),
   PRIMARY KEY(user_id, course_tee_id, hole_number)
 );
+
+CREATE TABLE IF NOT EXISTS course_images (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  data_url TEXT NOT NULL,
+  file_name TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS course_hole_official_notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  hole_number INT NOT NULL CHECK (hole_number BETWEEN 1 AND 18),
+  note TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(course_id, hole_number)
+);
+
+CREATE TABLE IF NOT EXISTS player_hole_notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_hole_id UUID NOT NULL REFERENCES course_holes(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
+  user_name TEXT NOT NULL DEFAULT '',
+  note TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(course_hole_id, user_id)
+);

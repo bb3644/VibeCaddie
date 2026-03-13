@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { HoleRow } from "./hole-row";
 import { Scorecard } from "./scorecard";
-import type { CourseHole } from "@/lib/db/types";
+import type { CourseHole, OfficialHoleNote } from "@/lib/db/types";
 
 const TOTAL_HOLES = 18;
 
@@ -14,6 +14,7 @@ interface HoleState {
   yardage: number;
   si: number;
   holeNote: string;
+  holeId: string | null;
 }
 
 function defaultHoles(): HoleState[] {
@@ -22,6 +23,7 @@ function defaultHoles(): HoleState[] {
     yardage: 0,
     si: 0,
     holeNote: "",
+    holeId: null,
   }));
 }
 
@@ -34,16 +36,25 @@ interface HoleEditorProps {
 /** 球洞编辑器：18洞列表 + Save All */
 export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
   const [holes, setHoles] = useState<HoleState[]>(defaultHoles);
+  const [officialNotes, setOfficialNotes] = useState<Record<number, OfficialHoleNote>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState("");
 
   const loadHoles = useCallback(async () => {
     try {
-      const res = await fetch(`/api/courses/${courseId}/tees/${teeId}/holes`);
-      if (!res.ok) return;
+      const [holesRes, notesRes] = await Promise.all([
+        fetch(`/api/courses/${courseId}/tees/${teeId}/holes`),
+        fetch(`/api/courses/${courseId}/official-notes`),
+      ]);
 
-      const dbHoles = (await res.json()) as CourseHole[];
+      if (notesRes.ok) {
+        const notes = (await notesRes.json()) as Record<number, OfficialHoleNote>;
+        setOfficialNotes(notes);
+      }
+
+      if (!holesRes.ok) return;
+      const dbHoles = (await holesRes.json()) as CourseHole[];
       if (dbHoles.length === 0) return;
 
       const merged = defaultHoles();
@@ -55,6 +66,7 @@ export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
             yardage: dh.yardage,
             si: (dh as CourseHole & { si?: number }).si ?? 0,
             holeNote: dh.hole_note ?? "",
+            holeId: dh.id,
           };
         }
       }
@@ -92,6 +104,8 @@ export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
 
       if (res.ok) {
         setFeedback("Saved!");
+        // Reload to get holeIds assigned
+        await loadHoles();
         return true;
       } else {
         setFeedback("Failed to save. Please try again.");
@@ -118,6 +132,18 @@ export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
     setHoles((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], ...data };
+      return next;
+    });
+  }
+
+  function handleOfficialNoteSave(holeNumber: number, note: OfficialHoleNote | null) {
+    setOfficialNotes((prev) => {
+      const next = { ...prev };
+      if (note) {
+        next[holeNumber] = note;
+      } else {
+        delete next[holeNumber];
+      }
       return next;
     });
   }
@@ -156,7 +182,11 @@ export function HoleEditor({ courseId, teeId, onFinish }: HoleEditorProps) {
             yardage={hole.yardage}
             si={hole.si}
             holeNote={hole.holeNote}
+            holeId={hole.holeId}
+            courseId={courseId}
+            officialNote={officialNotes[i + 1] ?? null}
             onChange={(data) => handleHoleChange(i, data)}
+            onOfficialNoteSave={(note) => handleOfficialNoteSave(i + 1, note)}
           />
         ))}
       </Card>

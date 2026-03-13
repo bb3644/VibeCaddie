@@ -23,16 +23,23 @@ interface TeeInput {
   par_total: string;
 }
 
+interface ImagePreview {
+  id: string;
+  data_url: string;
+  file_name: string;
+}
+
 function emptyTee(): TeeInput {
   return { tee_color: "", par_total: "" };
 }
 
-/** 球场创建表单：名称 + 位置 + tee 列表 */
+/** 球场创建表单：名称 + 位置 + tee 列表 + 照片 */
 export function CourseForm() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [tees, setTees] = useState<TeeInput[]>([emptyTee()]);
+  const [images, setImages] = useState<ImagePreview[]>([]);
   const [duplicates, setDuplicates] = useState<Course[] | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -50,6 +57,26 @@ export function CourseForm() {
 
   function addTee() {
     setTees((prev) => [...prev, emptyTee()]);
+  }
+
+  function handleImageFiles(files: FileList | null) {
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      if (!file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data_url = e.target?.result as string;
+        setImages((prev) => [
+          ...prev,
+          { id: crypto.randomUUID(), data_url, file_name: file.name },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function removeImage(id: string) {
+    setImages((prev) => prev.filter((img) => img.id !== id));
   }
 
   // 校验 tee 数据
@@ -119,7 +146,18 @@ export function CourseForm() {
         )
       );
 
-      // 3. 跳转到第一个 tee 的 holes 编辑页，带上 course 信息
+      // 3. 上传图片（fire-and-forget，不阻塞导航）
+      if (images.length > 0) {
+        images.map((img) =>
+          fetch(`/api/courses/${course.id}/images`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ data_url: img.data_url, file_name: img.file_name }),
+          })
+        );
+      }
+
+      // 4. 跳转到第一个 tee 的 holes 编辑页
       const firstTeeRes = teeResponses[0];
       if (firstTeeRes && firstTeeRes.ok) {
         const firstTee = (await firstTeeRes.json()) as CourseTee;
@@ -209,6 +247,46 @@ export function CourseForm() {
         <Button variant="secondary" onClick={addTee}>
           + Add Tee
         </Button>
+      </div>
+
+      {/* 照片上传 */}
+      <div className="flex flex-col gap-3">
+        <SectionTitle>Photos (optional)</SectionTitle>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          id="course-image-input"
+          onChange={(e) => handleImageFiles(e.target.files)}
+        />
+        {images.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {images.map((img) => (
+              <div key={img.id} className="relative w-20 h-20">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.data_url}
+                  alt={img.file_name}
+                  className="w-20 h-20 object-cover rounded-md border border-divider"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeImage(img.id)}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-[0.625rem] flex items-center justify-center cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <label
+          htmlFor="course-image-input"
+          className="inline-flex items-center gap-2 text-[0.875rem] text-accent font-medium cursor-pointer hover:underline"
+        >
+          {images.length === 0 ? "Add photos" : "Add more photos"}
+        </label>
       </div>
 
       {/* 错误提示 */}

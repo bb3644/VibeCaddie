@@ -12,6 +12,33 @@ export interface Course {
   created_at: string;
 }
 
+export interface CourseImage {
+  id: string;
+  course_id: string;
+  data_url: string;
+  file_name: string | null;
+  created_at: string;
+}
+
+export interface OfficialHoleNote {
+  id: string;
+  course_id: string;
+  hole_number: number;
+  note: string;
+  updated_at: string;
+}
+
+export interface PlayerHoleNote {
+  id: string;
+  course_hole_id: string;
+  user_id: string;
+  user_name: string;
+  note: string;
+  created_at: string;
+  updated_at: string;
+  is_mine: boolean;
+}
+
 export interface CourseTee {
   id: string;
   course_id: string;
