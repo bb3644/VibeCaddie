@@ -57,10 +57,10 @@ export async function PUT(
     }
 
     const safeTeeClub = tee_club || "-";
-    const validTeeResults = ["FW", "LEFT", "RIGHT", "OB"];
+    const validTeeResults = ["FW", "LEFT", "RIGHT", "SHORT", "OB"];
     const safeTeeResult = (tee_result && validTeeResults.includes(tee_result)
       ? tee_result
-      : "FW") as "FW" | "LEFT" | "RIGHT" | "OB";
+      : "FW") as "FW" | "LEFT" | "RIGHT" | "SHORT" | "OB";
 
     const validDistances = ["GIR", "SHORT", "LONG"];
     const safeApproachDistance = (approach_distance && validDistances.includes(approach_distance)

@@ -117,6 +117,7 @@ export interface Round {
   played_date: string;
   total_score: number | null;
   recap_text: string | null;
+  holes_played: number;
   created_at: string;
 }
 
@@ -125,7 +126,7 @@ export interface RoundHole {
   round_id: string;
   hole_number: number;
   tee_club: string;
-  tee_result: 'FW' | 'LEFT' | 'RIGHT' | 'OB';
+  tee_result: 'FW' | 'LEFT' | 'RIGHT' | 'SHORT' | 'OB';
   approach_club: string | null;
   approach_distance: 'GIR' | 'SHORT' | 'LONG' | null;
   approach_direction: 'CENTER' | 'LEFT' | 'RIGHT' | null;

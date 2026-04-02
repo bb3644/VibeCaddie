@@ -35,13 +35,13 @@ export async function getRoundById(userId: string, roundId: string): Promise<Rou
  */
 export async function createRound(
   userId: string,
-  data: { course_tee_id: string; played_date: string }
+  data: { course_tee_id: string; played_date: string; holes_played?: number }
 ): Promise<Round> {
   const result = await query<Round>(
-    `INSERT INTO rounds (user_id, course_tee_id, played_date)
-     VALUES ($1, $2, $3)
+    `INSERT INTO rounds (user_id, course_tee_id, played_date, holes_played)
+     VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [userId, data.course_tee_id, data.played_date]
+    [userId, data.course_tee_id, data.played_date, data.holes_played ?? 18]
   );
   return result.rows[0];
 }
@@ -64,7 +64,7 @@ export async function upsertRoundHole(data: {
   round_id: string;
   hole_number: number;
   tee_club: string;
-  tee_result: 'FW' | 'LEFT' | 'RIGHT' | 'OB';
+  tee_result: 'FW' | 'LEFT' | 'RIGHT' | 'SHORT' | 'OB';
   approach_club?: string;
   approach_distance?: 'GIR' | 'SHORT' | 'LONG';
   approach_direction?: 'CENTER' | 'LEFT' | 'RIGHT';
@@ -166,8 +166,12 @@ export async function getPlayerRoundsWithRatings(userId: string): Promise<RoundW
      JOIN course_tees ct ON r.course_tee_id = ct.id
      WHERE r.user_id = $1
        AND r.total_score IS NOT NULL
-       AND ct.course_rating IS NOT NULL
-       AND ct.slope_rating IS NOT NULL
+       AND ct.course_rating IS NOT NULL AND ct.course_rating > 0
+       AND ct.slope_rating IS NOT NULL AND ct.slope_rating > 0
+       AND (
+         SELECT COUNT(*) FROM round_holes rh
+         WHERE rh.round_id = r.id AND rh.score IS NOT NULL
+       ) >= r.holes_played
      ORDER BY r.played_date DESC
      LIMIT 20`,
     [userId]

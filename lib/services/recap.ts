@@ -46,8 +46,12 @@ export async function generateRecap(
   const penCount = roundHoles.filter(h => h.tee_result === 'OB').length;
   const girCount = roundHoles.filter(h => h.approach_distance === 'GIR').length;
 
+  const holesPlayed = round.holes_played ?? 18;
+  const roundType = holesPlayed === 9 ? '9-hole round' : '18-hole round';
+
   let prompt = `Generate a post-round recap.\n\n`;
   prompt += `## Round Summary\n`;
+  prompt += `Round type: ${roundType}\n`;
   prompt += `Total score: ${totalScore}\n`;
   prompt += `Fairways hit: ${fwCount} out of ${roundHoles.length}\n`;
   prompt += `Greens in regulation: ${girCount} out of ${roundHoles.length}\n`;
@@ -154,10 +158,10 @@ function buildTrendsSection(history: PlayerHoleHistory[]): string {
     const hardest = sorted[0];
     const easiest = sorted[sorted.length - 1];
     if (hardest) {
-      lines.push(`Hardest hole: Hole ${hardest.hole_number} (avg ${hardest.avg_score?.toFixed(1)})`);
+      lines.push(`Hardest hole: Hole ${hardest.hole_number} (avg ${Number(hardest.avg_score).toFixed(1)})`);
     }
     if (easiest && easiest.hole_number !== hardest?.hole_number) {
-      lines.push(`Easiest hole: Hole ${easiest.hole_number} (avg ${easiest.avg_score?.toFixed(1)})`);
+      lines.push(`Easiest hole: Hole ${easiest.hole_number} (avg ${Number(easiest.avg_score).toFixed(1)})`);
     }
   }
 
