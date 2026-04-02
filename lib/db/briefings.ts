@@ -45,7 +45,8 @@ export interface BriefingWithCourse extends PreRoundBriefing {
 }
 
 /**
- * 获取球员的所有简报（按日期倒序，同日按创建时间倒序），JOIN 球场和 tee 名称
+ * 获取球员尚未完成赛后回顾的简报（按日期倒序，同日按创建时间倒序）
+ * 排除已有匹配 round（相同 course_tee_id + played_date）的简报
  */
 export async function getPlayerBriefings(userId: string): Promise<BriefingWithCourse[]> {
   const result = await query<BriefingWithCourse>(
@@ -54,6 +55,12 @@ export async function getPlayerBriefings(userId: string): Promise<BriefingWithCo
      JOIN course_tees ct ON ct.id = b.course_tee_id
      JOIN courses c ON c.id = ct.course_id
      WHERE b.user_id = $1
+       AND NOT EXISTS (
+         SELECT 1 FROM rounds r
+         WHERE r.user_id = b.user_id
+           AND r.course_tee_id = b.course_tee_id
+           AND r.played_date = b.play_date
+       )
      ORDER BY b.play_date DESC, b.created_at DESC`,
     [userId]
   );
