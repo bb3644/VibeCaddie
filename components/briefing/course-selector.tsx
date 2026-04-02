@@ -10,9 +10,10 @@ import type { Course, CourseTee } from "@/lib/db/types";
 /** tee 颜色对应的圆点色 */
 const COLOR_MAP: Record<string, string> = {
   White: "bg-gray-200",
+  Yellow: "bg-yellow-400",
   Blue: "bg-blue-500",
   Red: "bg-red-500",
-  Gold: "bg-yellow-400",
+  Gold: "bg-amber-500",
   Black: "bg-gray-800",
 };
 
@@ -46,6 +47,15 @@ export function CourseSelector({ preselectedCourseId }: CourseSelectorProps) {
 
   // 步骤 3：选择日期
   const [playDate, setPlayDate] = useState(todayString());
+
+  // 步骤 4：选择洞数
+  type HoleOption = { holesPlayed: 9 | 18; startHole: 1 | 10; label: string; sub: string };
+  const HOLE_OPTIONS: HoleOption[] = [
+    { holesPlayed: 18, startHole: 1,  label: "Full 18", sub: "Holes 1–18" },
+    { holesPlayed: 9,  startHole: 1,  label: "Front 9", sub: "Holes 1–9" },
+    { holesPlayed: 9,  startHole: 10, label: "Back 9",  sub: "Holes 10–18" },
+  ];
+  const [selectedHoleOption, setSelectedHoleOption] = useState<HoleOption>(HOLE_OPTIONS[0]);
 
   // 生成状态
   const [generating, setGenerating] = useState(false);
@@ -341,7 +351,40 @@ export function CourseSelector({ preselectedCourseId }: CourseSelectorProps) {
         </Card>
       )}
 
-      {/* 生成按钮 */}
+      {/* 步骤 4：选择洞数 */}
+      {selectedTeeId && playDate && (
+        <Card>
+          <SectionTitle className="mb-3">4. Number of Holes</SectionTitle>
+          <div className="flex flex-col gap-2">
+            {HOLE_OPTIONS.map((opt) => {
+              const isSelected = opt.label === selectedHoleOption.label;
+              return (
+                <button
+                  key={opt.label}
+                  onClick={() => setSelectedHoleOption(opt)}
+                  className={`
+                    flex items-center gap-3 w-full rounded-lg px-4 py-3
+                    border transition-colors duration-150 cursor-pointer text-left
+                    ${isSelected ? "border-accent bg-accent/5" : "border-divider hover:bg-bg"}
+                  `}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-[0.9375rem] font-medium text-text">{opt.label}</span>
+                    <span className="text-[0.8125rem] text-secondary">{opt.sub}</span>
+                  </div>
+                  {isSelected && (
+                    <svg className="w-5 h-5 text-accent ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+
+      {/* 生成按钮 + Play Round 按钮 */}
       {selectedTeeId && playDate && (
         <div className="flex flex-col gap-3">
           {error && (
@@ -356,12 +399,23 @@ export function CourseSelector({ preselectedCourseId }: CourseSelectorProps) {
               </p>
             </div>
           ) : (
-            <Button
-              onClick={handleGenerate}
-              className="w-full text-[1rem] py-3"
-            >
-              Generate Briefing
-            </Button>
+            <>
+              <Button
+                onClick={handleGenerate}
+                className="w-full text-[1rem] py-3"
+              >
+                Generate Briefing
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => router.push(
+                  `/rounds/new?course_tee_id=${selectedTeeId}&play_date=${playDate}&holes_played=${selectedHoleOption.holesPlayed}&start_hole=${selectedHoleOption.startHole}`
+                )}
+                className="w-full text-[1rem] py-3"
+              >
+                Play Round (Skip Briefing)
+              </Button>
+            </>
           )}
         </div>
       )}
