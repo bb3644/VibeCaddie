@@ -6,20 +6,22 @@ import type { RoundHole } from "@/lib/db/types";
 
 // ─── Tee Result ───────────────────────────────────────────────────────────────
 
-const TEE_RESULTS = ["FW", "LEFT", "RIGHT", "OB"] as const;
+const TEE_RESULTS = ["FW", "LEFT", "RIGHT", "SHORT", "OB"] as const;
 type TeeResult = (typeof TEE_RESULTS)[number];
 
 const TEE_RESULT_LABELS: Record<TeeResult, string> = {
-  FW: "FW",
-  LEFT: "Left",
+  FW:    "FW",
+  LEFT:  "Left",
   RIGHT: "Right",
-  OB: "OB",
+  SHORT: "Short",
+  OB:    "OB",
 };
 
 const TEE_RESULT_STYLES: Record<TeeResult, { base: string; selected: string }> = {
   FW:    { base: "bg-green-50 text-green-700 border-green-200",   selected: "bg-green-600 text-white border-green-600" },
   LEFT:  { base: "bg-amber-50 text-amber-700 border-amber-200",   selected: "bg-amber-500 text-white border-amber-500" },
   RIGHT: { base: "bg-amber-50 text-amber-700 border-amber-200",   selected: "bg-amber-500 text-white border-amber-500" },
+  SHORT: { base: "bg-amber-50 text-amber-700 border-amber-200",   selected: "bg-amber-500 text-white border-amber-500" },
   OB:    { base: "bg-red-50 text-red-700 border-red-200",         selected: "bg-red-500 text-white border-red-500" },
 };
 
