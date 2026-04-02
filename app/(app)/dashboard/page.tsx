@@ -39,7 +39,7 @@ function formatBriefingDate(playDate: string): string {
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
-  const [latestBriefing, setLatestBriefing] = useState<BriefingInfo | null>(null);
+  const [briefings, setBriefings] = useState<BriefingInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -57,8 +57,8 @@ export default function DashboardPage() {
           setError("Couldn't load your dashboard right now.");
         }
         if (briefingRes.ok) {
-          const briefings = (await briefingRes.json()) as BriefingInfo[];
-          if (briefings.length > 0) setLatestBriefing(briefings[0]);
+          const data = (await briefingRes.json()) as BriefingInfo[];
+          setBriefings(data);
         }
       } catch {
         setError("Something went wrong. Give it another try.");
@@ -103,25 +103,27 @@ export default function DashboardPage() {
 
       <QuickActions />
 
-      {latestBriefing && (
+      {briefings.length > 0 && (
         <div className="flex flex-col gap-2">
-          <p className="text-[0.8125rem] font-medium text-secondary uppercase tracking-wide">Latest Briefing</p>
-          <Link href={`/briefing/${latestBriefing.id}`}>
-            <Card className="hover:shadow-md transition-shadow duration-150 cursor-pointer border-accent/30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[0.9375rem] font-medium text-text">
-                    {latestBriefing.course_name ?? "Course"}
-                    {latestBriefing.tee_name ? ` — ${latestBriefing.tee_name}` : ""}
-                  </p>
-                  <p className="text-[0.8125rem] text-secondary mt-0.5">
-                    {formatBriefingDate(latestBriefing.play_date)} · Pre-round briefing
-                  </p>
+          <p className="text-[0.8125rem] font-medium text-secondary uppercase tracking-wide">Briefings</p>
+          {briefings.map((b) => (
+            <Link key={b.id} href={`/briefing/${b.id}`}>
+              <Card className="hover:shadow-md transition-shadow duration-150 cursor-pointer border-accent/30">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[0.9375rem] font-medium text-text">
+                      {b.course_name ?? "Course"}
+                      {b.tee_name ? ` — ${b.tee_name}` : ""}
+                    </p>
+                    <p className="text-[0.8125rem] text-secondary mt-0.5">
+                      {formatBriefingDate(b.play_date)} · Pre-round briefing
+                    </p>
+                  </div>
+                  <span className="text-accent text-[0.875rem] font-medium">View →</span>
                 </div>
-                <span className="text-accent text-[0.875rem] font-medium">View →</span>
-              </div>
-            </Card>
-          </Link>
+              </Card>
+            </Link>
+          ))}
         </div>
       )}
 

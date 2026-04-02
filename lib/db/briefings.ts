@@ -45,7 +45,7 @@ export interface BriefingWithCourse extends PreRoundBriefing {
 }
 
 /**
- * 获取球员的所有简报（按日期倒序），JOIN 球场和 tee 名称
+ * 获取球员的所有简报（按日期倒序，同日按创建时间倒序），JOIN 球场和 tee 名称
  */
 export async function getPlayerBriefings(userId: string): Promise<BriefingWithCourse[]> {
   const result = await query<BriefingWithCourse>(
@@ -54,10 +54,21 @@ export async function getPlayerBriefings(userId: string): Promise<BriefingWithCo
      JOIN course_tees ct ON ct.id = b.course_tee_id
      JOIN courses c ON c.id = ct.course_id
      WHERE b.user_id = $1
-     ORDER BY b.play_date DESC`,
+     ORDER BY b.play_date DESC, b.created_at DESC`,
     [userId]
   );
   return result.rows;
+}
+
+/**
+ * 删除简报（校验 user_id）
+ */
+export async function deleteBriefing(userId: string, briefingId: string): Promise<boolean> {
+  const result = await query(
+    `DELETE FROM pre_round_briefings WHERE id = $1 AND user_id = $2`,
+    [briefingId, userId]
+  );
+  return (result.rowCount ?? 0) > 0;
 }
 
 /**

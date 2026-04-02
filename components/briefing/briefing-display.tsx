@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { SectionTitle } from "@/components/ui/section-title";
@@ -92,15 +94,34 @@ function BriefingText({ text }: { text: string }) {
 }
 
 export function BriefingDisplay({ briefing }: BriefingDisplayProps) {
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
   const bj = briefing.briefing_json;
+
+  async function handleDelete() {
+    if (!confirm("Delete this briefing? This cannot be undone.")) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/briefing/${briefing.id}`, { method: "DELETE" });
+      if (res.ok) {
+        router.push("/briefing");
+      }
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   const courseName = briefing.course_name ?? "";
   const teeName = briefing.tee_name ?? "";
 
-  const formattedDate = new Date(briefing.play_date + "T00:00:00").toLocaleDateString(
-    "en-US",
-    { weekday: "long", month: "long", day: "numeric", year: "numeric" }
-  );
+  const rawDate = typeof briefing.play_date === "string"
+    ? briefing.play_date.split("T")[0]
+    : "";
+  const formattedDate = rawDate
+    ? new Date(rawDate + "T12:00:00").toLocaleDateString("en-US", {
+        weekday: "long", month: "long", day: "numeric", year: "numeric",
+      })
+    : "";
 
   return (
     <div className="flex flex-col gap-6">
@@ -202,12 +223,27 @@ export function BriefingDisplay({ briefing }: BriefingDisplayProps) {
         <BriefingText text={bj.display_text} />
       </Card>
 
-      {/* 开始轮次快捷入口 */}
-      <Link href={`/rounds/new?course_tee_id=${briefing.course_tee_id}&play_date=${briefing.play_date}`}>
-        <Button variant="secondary" className="w-full">
-          Start a Round
+      {/* Actions */}
+      <div className="flex flex-col gap-3">
+        <Link href="/briefing">
+          <Button className="w-full">
+            Generate New Briefing
+          </Button>
+        </Link>
+        <Link href={`/rounds/new?course_tee_id=${briefing.course_tee_id}&play_date=${briefing.play_date}`}>
+          <Button variant="secondary" className="w-full">
+            Go to Post Game Review
+          </Button>
+        </Link>
+        <Button
+          variant="ghost"
+          className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+          onClick={handleDelete}
+          disabled={deleting}
+        >
+          {deleting ? "Deleting..." : "Delete Briefing"}
         </Button>
-      </Link>
+      </div>
     </div>
   );
 }
