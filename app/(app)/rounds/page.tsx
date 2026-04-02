@@ -11,30 +11,62 @@ type RoundWithInfo = Round & {
   tee_name?: string;
 };
 
+interface BriefingInfo {
+  id: string;
+  course_name?: string;
+  tee_name?: string;
+  play_date: string;
+  course_tee_id: string;
+}
+
+function formatBriefingDate(playDate: string): string {
+  const raw = typeof playDate === "string" ? playDate.split("T")[0] : "";
+  return raw
+    ? new Date(raw + "T12:00:00").toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "";
+}
+
 /** 根据 round 数据生成 calm caddie insight */
 function roundInsight(round: RoundWithInfo): string {
   const score = round.total_score;
   if (!score) return "Round recorded.";
-  if (score <= 85) return "Solid round — game felt good.";
-  if (score <= 90) return "Good drives, stayed out of trouble.";
-  if (score <= 95) return "A few tricky holes, but kept it together.";
+  const is9 = (round.holes_played ?? 18) === 9;
+  // Adjust thresholds for 9-hole rounds
+  const t1 = is9 ? 43 : 85;
+  const t2 = is9 ? 46 : 90;
+  const t3 = is9 ? 49 : 95;
+  if (score <= t1) return "Solid round — game felt good.";
+  if (score <= t2) return "Good drives, stayed out of trouble.";
+  if (score <= t3) return "A few tricky holes, but kept it together.";
   return "Tougher day — safer clubs next time.";
 }
 
 export default function RoundsListPage() {
   const [rounds, setRounds] = useState<RoundWithInfo[]>([]);
+  const [latestBriefing, setLatestBriefing] = useState<BriefingInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch("/api/rounds");
-        if (res.ok) {
-          const data = (await res.json()) as RoundWithInfo[];
+        const [roundsRes, briefingRes] = await Promise.all([
+          fetch("/api/rounds"),
+          fetch("/api/briefing"),
+        ]);
+        if (roundsRes.ok) {
+          const data = (await roundsRes.json()) as RoundWithInfo[];
           setRounds(data);
         } else {
           setError("Couldn't load your rounds right now.");
+        }
+        if (briefingRes.ok) {
+          const briefings = (await briefingRes.json()) as BriefingInfo[];
+          if (briefings.length > 0) setLatestBriefing(briefings[0]);
         }
       } catch {
         setError("Something went wrong. Give it another try.");
@@ -98,6 +130,28 @@ export default function RoundsListPage() {
         </Link>
       </div>
 
+      {latestBriefing && (
+        <div className="flex flex-col gap-2">
+          <p className="text-[0.8125rem] font-medium text-secondary uppercase tracking-wide">Latest Briefing</p>
+          <Link href={`/briefing/${latestBriefing.id}`}>
+            <Card className="hover:shadow-md transition-shadow duration-150 cursor-pointer border-accent/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[0.9375rem] font-medium text-text">
+                    {latestBriefing.course_name ?? "Course"}
+                    {latestBriefing.tee_name ? ` — ${latestBriefing.tee_name}` : ""}
+                  </p>
+                  <p className="text-[0.8125rem] text-secondary mt-0.5">
+                    {formatBriefingDate(latestBriefing.play_date)} · Pre-round briefing
+                  </p>
+                </div>
+                <span className="text-accent text-[0.875rem] font-medium">View →</span>
+              </div>
+            </Card>
+          </Link>
+        </div>
+      )}
+
       {rounds.length === 0 ? (
         <Card>
           <p className="text-center text-secondary text-[0.9375rem] py-8">
@@ -120,7 +174,8 @@ export default function RoundsListPage() {
                         year: "numeric",
                         month: "short",
                         day: "numeric",
-                      })}
+                      })}{" "}
+                      &middot; {(round.holes_played ?? 18) === 9 ? "9 holes" : "18 holes"}
                     </p>
                     <p className="text-[0.75rem] text-secondary/70 mt-1 italic">
                       {roundInsight(round)}
