@@ -230,7 +230,7 @@ export function BriefingDisplay({ briefing }: BriefingDisplayProps) {
             Generate New Briefing
           </Button>
         </Link>
-        <Link href={`/rounds/new?course_tee_id=${briefing.course_tee_id}&play_date=${briefing.play_date}`}>
+        <Link href={`/rounds/new?course_tee_id=${briefing.course_tee_id}&play_date=${rawDate}`}>
           <Button variant="secondary" className="w-full">
             Go to Post Game Review
           </Button>

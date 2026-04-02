@@ -57,8 +57,9 @@ export async function getPlayerBriefings(userId: string): Promise<BriefingWithCo
      WHERE b.user_id = $1
        AND NOT EXISTS (
          SELECT 1 FROM rounds r
+         JOIN course_tees ct2 ON ct2.id = r.course_tee_id
          WHERE r.user_id = b.user_id
-           AND r.course_tee_id = b.course_tee_id
+           AND ct2.course_id = ct.course_id
            AND r.played_date = b.play_date
        )
      ORDER BY b.play_date DESC, b.created_at DESC`,
