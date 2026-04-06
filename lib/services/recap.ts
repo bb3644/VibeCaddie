@@ -6,6 +6,7 @@ import { getRoundById, getRoundHoles, saveRecapText } from '@/lib/db/rounds';
 import { getBriefingForRound } from '@/lib/db/briefings';
 import { getPlayerHoleHistory } from '@/lib/db/players';
 import { getCourseHoles } from '@/lib/db/courses';
+import { getAllKnowledge } from './knowledge';
 import type { RoundHole, CourseHole, PlayerHoleHistory, BriefingJson } from '@/lib/db/types';
 
 // ---------- 主函数 ----------
@@ -89,13 +90,23 @@ export async function generateRecap(
     prompt += `\n## Course History (${maxRounds}+ rounds)\n${trends}\n`;
   }
 
-  // 7. 调用 LLM
+  // 7. Append knowledge principles
+  const knowledge = getAllKnowledge();
+  if (knowledge.length > 0) {
+    prompt += `\n## Golf Course Management Principles\n`;
+    prompt += `Apply these principles when analyzing the round:\n`;
+    for (const k of knowledge) {
+      prompt += `- [${k.source}] ${k.principle}\n`;
+    }
+  }
+
+  // 8. 调用 LLM
   const response = await callLLM(RECAP_SYSTEM_PROMPT, prompt);
 
-  // 8. 存储 recap 到数据库
+  // 9. 存储 recap 到数据库
   await saveRecapText(userId, roundId, response.content);
 
-  // 9. 触发学习更新
+  // 10. 触发学习更新
   await updateLearningAfterRound(userId, roundId);
 
   return response.content;

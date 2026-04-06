@@ -4,7 +4,7 @@ import { CHAT_SYSTEM_PROMPT } from './llm';
 import { getPlayerProfile } from '@/lib/db/players';
 import { getPlayerRounds, getRoundHoles } from '@/lib/db/rounds';
 import { getPlayerBriefings } from '@/lib/db/briefings';
-import { getRelevantKnowledge } from './knowledge';
+import { getAllKnowledge } from './knowledge';
 import type { RoundHole } from '@/lib/db/types';
 
 interface ChatMessage {
@@ -33,9 +33,8 @@ export async function handleChatMessage(
     })
   );
 
-  // 3. 根据消息推断话题，检索知识库
-  const topics = inferTopicsFromMessage(message);
-  const knowledge = getRelevantKnowledge(topics, 3);
+  // 3. 加载全部知识库
+  const knowledge = getAllKnowledge();
 
   // 4. 拼装上下文 prompt
   let contextPrompt = '';
@@ -67,9 +66,9 @@ export async function handleChatMessage(
   }
 
   if (knowledge.length > 0) {
-    contextPrompt += `Relevant golf knowledge:\n`;
+    contextPrompt += `Golf course management knowledge base:\n`;
     for (const k of knowledge) {
-      contextPrompt += `- ${k.principle} (${k.source})\n`;
+      contextPrompt += `- [${k.source}] ${k.principle}\n`;
     }
     contextPrompt += '\n';
   }
@@ -130,24 +129,3 @@ export async function handleChatMessage(
   return data.choices[0].message.content;
 }
 
-/**
- * 根据用户消息推断相关话题，用于知识库检索
- */
-function inferTopicsFromMessage(message: string): string[] {
-  const lower = message.toLowerCase();
-  const topics: string[] = [];
-
-  if (lower.includes('driver') || lower.includes('tee')) topics.push('tee_strategy');
-  if (lower.includes('green') || lower.includes('approach')) topics.push('green_approach');
-  if (lower.includes('hazard') || lower.includes('water') || lower.includes('bunker')) topics.push('hazard_placement');
-  if (lower.includes('score') || lower.includes('scoring')) topics.push('scoring');
-  if (lower.includes('par 3') || lower.includes('par-3')) topics.push('par3_strategy');
-  if (lower.includes('par 5') || lower.includes('par-5')) topics.push('par5_strategy');
-  if (lower.includes('wind') || lower.includes('rain') || lower.includes('weather')) topics.push('wind_weather');
-  if (lower.includes('mental') || lower.includes('confidence') || lower.includes('nervous')) topics.push('mental_game');
-  if (lower.includes('risk') || lower.includes('aggressive') || lower.includes('safe')) topics.push('risk_reward');
-
-  if (topics.length === 0) topics.push('course_management');
-
-  return topics;
-}

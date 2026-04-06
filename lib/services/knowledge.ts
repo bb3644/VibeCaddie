@@ -17,6 +17,13 @@ const allChunks: KnowledgeChunk[] = [
 ];
 
 /**
+ * 返回所有知识块（所有书/来源）
+ */
+export function getAllKnowledge(): KnowledgeChunk[] {
+  return allChunks;
+}
+
+/**
  * 根据话题列表检索相关知识块，跨来源做 round-robin 保证多样性
  */
 export function getRelevantKnowledge(

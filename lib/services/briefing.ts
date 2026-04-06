@@ -6,16 +6,9 @@ import { createBriefing as saveBriefing } from '@/lib/db/briefings';
 import { BriefingJson, OfficialHoleNote, PlayerHoleNote } from '@/lib/db/types';
 import { query } from '@/lib/db/client';
 
-// Load knowledge books once at module level
-import foundationsData from '@/lib/knowledge/foundations.json';
-import architectureData from '@/lib/knowledge/architecture.json';
-import anatomyData from '@/lib/knowledge/anatomy.json';
+import { getAllKnowledge } from './knowledge';
 
-const KNOWLEDGE_PRINCIPLES = [
-  ...foundationsData.chunks,
-  ...architectureData.chunks,
-  ...anatomyData.chunks,
-].slice(0, 20); // include top 20 principles to keep prompt size reasonable
+const KNOWLEDGE_PRINCIPLES = getAllKnowledge();
 
 export async function generateBriefing(
   userId: string,

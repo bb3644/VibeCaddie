@@ -53,6 +53,11 @@ export default function CourseDetailPage() {
   const [editName, setEditName] = useState("");
   const [savingName, setSavingName] = useState(false);
 
+  // 编辑球场地址
+  const [editingLocation, setEditingLocation] = useState(false);
+  const [editLocation, setEditLocation] = useState("");
+  const [savingLocation, setSavingLocation] = useState(false);
+
   // 编辑 tee par_total
   const [editingTeeId, setEditingTeeId] = useState<string | null>(null);
   const [editTeePar, setEditTeePar] = useState("");
@@ -169,6 +174,29 @@ export default function CourseDetailPage() {
     setSavingName(false);
     setEditingName(false);
   }, [editName, course?.name, courseId]);
+
+  // 保存球场地址
+  const handleSaveLocation = useCallback(async () => {
+    const trimmed = editLocation.trim();
+    if (trimmed === (course?.location_text ?? "")) {
+      setEditingLocation(false);
+      return;
+    }
+    setSavingLocation(true);
+    try {
+      const res = await fetch(`/api/courses/${courseId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ location_text: trimmed || null }),
+      });
+      if (res.ok) {
+        const updated = (await res.json()) as Course;
+        setCourse((prev) => prev ? { ...prev, location_text: updated.location_text } : prev);
+      }
+    } catch { /* 静默 */ }
+    setSavingLocation(false);
+    setEditingLocation(false);
+  }, [editLocation, course?.location_text, courseId]);
 
   // 保存 tee par_total
   const handleSaveTeePar = useCallback(async (teeId: string) => {
@@ -308,9 +336,47 @@ export default function CourseDetailPage() {
             </svg>
           </h1>
         )}
-        {course.location_text && (
-          <p className="text-[0.9375rem] text-secondary mt-1">
-            {course.location_text}
+        {editingLocation ? (
+          <div className="flex items-center gap-2 mt-1">
+            <input
+              autoFocus
+              className="text-[0.9375rem] text-secondary border-b border-accent bg-transparent outline-none flex-1 min-w-0"
+              value={editLocation}
+              onChange={(e) => setEditLocation(e.target.value)}
+              placeholder="e.g. Shenzhen, China"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveLocation();
+                if (e.key === "Escape") setEditingLocation(false);
+              }}
+              disabled={savingLocation}
+            />
+            <button
+              onClick={handleSaveLocation}
+              disabled={savingLocation}
+              className="text-[0.8125rem] text-accent font-medium hover:underline cursor-pointer"
+            >
+              {savingLocation ? "..." : "Save"}
+            </button>
+            <button
+              onClick={() => setEditingLocation(false)}
+              className="text-[0.8125rem] text-secondary hover:underline cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <p
+            className="text-[0.9375rem] text-secondary mt-1 group cursor-pointer inline-flex items-center gap-1"
+            onClick={() => {
+              setEditLocation(course.location_text ?? "");
+              setEditingLocation(true);
+            }}
+            title="Click to edit location"
+          >
+            {course.location_text || <span className="italic text-secondary/50">Add location</span>}
+            <svg className="w-3 h-3 text-secondary/40 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
           </p>
         )}
       </div>
