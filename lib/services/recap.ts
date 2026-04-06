@@ -63,9 +63,21 @@ export async function generateRecap(
     prompt += `Hole ${hole.hole_number}: Par ${courseHole?.par || '?'}, Tee: ${hole.tee_club} (${hole.tee_result}), Score: ${hole.score || '?'}`;
     if (hole.approach_distance) {
       const dir = hole.approach_direction ? `/${hole.approach_direction}` : '';
-      prompt += `, Approach: ${hole.approach_distance}${dir}`;
+      const yds = hole.approach_yardage ? ` ${hole.approach_yardage}yds` : '';
+      prompt += `, Approach: ${hole.approach_distance}${dir}${yds}`;
+      if (hole.approach_club) prompt += ` (${hole.approach_club})`;
+    }
+    if (hole.up_down !== null && hole.up_down !== undefined) {
+      prompt += `, U&D: ${hole.up_down ? 'Yes' : 'No'}`;
     }
     if (hole.putts !== null) prompt += `, Putts: ${hole.putts}`;
+    if (hole.recovery_club) prompt += `, Recovery: ${hole.recovery_club}`;
+    const penalties: string[] = [];
+    if (hole.bunker_count > 0) penalties.push(`${hole.bunker_count} bunker`);
+    if (hole.water_count > 0) penalties.push(`${hole.water_count} water`);
+    if (hole.penalty_count > 0) penalties.push(`${hole.penalty_count} penalty`);
+    if (penalties.length > 0) prompt += `, Hazards: ${penalties.join(', ')}`;
+    if (hole.hole_notes) prompt += `\n  Notes: "${hole.hole_notes}"`;
     prompt += '\n';
   }
 
