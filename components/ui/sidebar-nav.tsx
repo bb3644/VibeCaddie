@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import type { NavItem } from "./bottom-nav";
 
@@ -66,13 +67,19 @@ export function SidebarNav({ items }: SidebarNavProps) {
   }
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 z-50 hidden lg:flex flex-col w-[240px] border-r border-divider bg-card">
-      {/* Logo / 品牌区 */}
-      <div className="px-6 py-6">
-        <span className="text-[1.25rem] font-semibold text-text">
-          Vibe Caddie
-        </span>
-        <p className="text-[0.6875rem] text-secondary mt-0.5">created by Fan &amp; Fan</p>
+    <aside className="fixed left-0 top-0 bottom-0 z-50 hidden lg:flex flex-col w-[240px] border-r border-divider" style={{ background: "#F5F0E8" }}>
+      {/* Logo */}
+      <div className="px-5 pt-5 pb-4 border-b border-divider">
+        <Link href="/">
+          <Image
+            src="/logo-crop.png"
+            alt="Vibe Caddie"
+            width={480}
+            height={126}
+            className="w-full h-auto"
+            priority
+          />
+        </Link>
       </div>
 
       {/* 导航链接 */}

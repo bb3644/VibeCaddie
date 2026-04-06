@@ -15,9 +15,9 @@ const variantStyles: Record<ButtonVariant, string> = {
   primary:
     "bg-accent text-white hover:bg-accent-hover active:bg-accent-hover",
   secondary:
-    "border border-divider text-text hover:bg-bg active:bg-bg",
+    "border border-accent/30 text-accent hover:bg-accent/5 active:bg-accent/5",
   ghost:
-    "text-secondary hover:text-text hover:bg-bg active:bg-bg",
+    "text-secondary hover:text-text hover:bg-accent/5 active:bg-accent/5",
 };
 
 /** 通用按钮，支持 primary / secondary / ghost 三种变体 */
