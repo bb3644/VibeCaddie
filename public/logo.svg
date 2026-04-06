@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64">
+  <!-- Flag pole -->
+  <rect x="19.5" y="7" width="1.5" height="46" rx="0.75" fill="#235D3E"/>
+  <!-- Waving flag -->
+  <path d="M21 7 Q30 11 38 16 Q30 21 21 25 Z" fill="#235D3E"/>
+  <!-- Ground line -->
+  <line x1="11" y1="53" x2="30" y2="53" stroke="#C49A8A" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- "Vibe Caddie" -->
+  <text
+    x="46" y="36"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="23"
+    font-weight="700"
+    fill="#235D3E"
+    letter-spacing="-0.4">Vibe Caddie</text>
+
+  <!-- "GOLF CURATION" -->
+  <text
+    x="47" y="50"
+    font-family="'Helvetica Neue', Arial, sans-serif"
+    font-size="8"
+    font-weight="400"
+    fill="#C49A8A"
+    letter-spacing="2.5">GOLF CURATION</text>
+</svg>

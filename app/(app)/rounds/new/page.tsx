@@ -448,7 +448,7 @@ function NewRoundContent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
+      <Card style={{ background: "white" }}>
         <HoleEntry
           ref={holeEntryRef}
           roundId={roundId!}

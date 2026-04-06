@@ -258,7 +258,7 @@ export default function EditRoundPage() {
         </h1>
       </div>
 
-      <Card>
+      <Card style={{ background: "white" }}>
         <HoleEntry
           ref={holeEntryRef}
           roundId={roundId}

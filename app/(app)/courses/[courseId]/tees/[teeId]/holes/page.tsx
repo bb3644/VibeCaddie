@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { InfoBanner } from "@/components/ui/info-banner";
@@ -32,7 +32,7 @@ interface PendingImage {
   selectedTeeIdx: number;
 }
 
-export default function HolesPage() {
+function HolesContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -374,5 +374,13 @@ export default function HolesPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function HolesPage() {
+  return (
+    <Suspense>
+      <HolesContent />
+    </Suspense>
   );
 }

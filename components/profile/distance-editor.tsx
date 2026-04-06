@@ -10,7 +10,6 @@ interface DistanceEditorProps {
 }
 
 export function DistanceEditor({ enabledClubs, initial }: DistanceEditorProps) {
-  // club_code -> yards string
   const [distances, setDistances] = useState<Record<string, string>>(() => {
     const m: Record<string, string> = {};
     for (const d of initial) {
@@ -18,22 +17,35 @@ export function DistanceEditor({ enabledClubs, initial }: DistanceEditorProps) {
     }
     return m;
   });
+  const [savedDistances, setSavedDistances] = useState<Record<string, string>>(() => {
+    const m: Record<string, string> = {};
+    for (const d of initial) {
+      m[d.club_code] = d.typical_carry_yards?.toString() ?? "";
+    }
+    return m;
+  });
 
+  const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+
+  const enabledList = Array.from(enabledClubs);
+
+  if (enabledList.length === 0) {
+    return (
+      <p className="text-[0.875rem] text-secondary">
+        Save your bag first to set club distances.
+      </p>
+    );
+  }
 
   function handleChange(clubCode: string, value: string) {
-    // 只允许数字
     const digits = value.replace(/\D/g, "");
-    setSaved(false);
     setDistances((prev) => ({ ...prev, [clubCode]: digits }));
   }
 
   async function handleSave() {
     setSaving(true);
     try {
-      const enabledList = Array.from(enabledClubs);
-      // 只保存有值的
       const toSave = enabledList
         .filter((code) => distances[code] && distances[code] !== "")
         .map((code) => ({
@@ -51,38 +63,51 @@ export function DistanceEditor({ enabledClubs, initial }: DistanceEditorProps) {
         )
       );
 
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      setSavedDistances({ ...distances });
+      setEditing(false);
     } catch {
-      // 静默
+      // silent
     } finally {
       setSaving(false);
     }
   }
 
-  const enabledList = Array.from(enabledClubs);
-
-  if (enabledList.length === 0) {
+  // ── View mode ──────────────────────────────────────────────────────────────
+  if (!editing) {
+    const hasAny = enabledList.some((c) => savedDistances[c]);
     return (
-      <p className="text-[0.875rem] text-secondary">
-        Save your bag first to set club distances.
-      </p>
+      <div className="flex flex-col gap-4">
+        {hasAny ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2">
+            {enabledList.map((code) => (
+              <div key={code} className="flex items-center justify-between">
+                <span className="text-[0.875rem] font-medium text-text w-14">{code}</span>
+                <span className="text-[0.9375rem] text-text">
+                  {savedDistances[code] ? `${savedDistances[code]} yds` : "—"}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-[0.875rem] text-secondary">No distances saved yet.</p>
+        )}
+        <div>
+          <Button variant="secondary" onClick={() => setEditing(true)}>Edit Distances</Button>
+        </div>
+      </div>
     );
   }
 
+  // ── Edit mode ──────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-4">
       <p className="text-[0.875rem] text-secondary">
-        Approximate carry distances help Vibe Caddie suggest tee clubs. Leave
-        blank if unsure.
+        Approximate carry distances help Vibe Caddie suggest tee clubs. Leave blank if unsure.
       </p>
-
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {enabledList.map((code) => (
           <div key={code} className="flex items-center gap-2">
-            <label className="text-[0.875rem] font-medium text-text w-14 shrink-0">
-              {code}
-            </label>
+            <label className="text-[0.875rem] font-medium text-text w-14 shrink-0">{code}</label>
             <div className="flex items-center gap-1 flex-1">
               <input
                 type="text"
@@ -101,17 +126,19 @@ export function DistanceEditor({ enabledClubs, initial }: DistanceEditorProps) {
                   transition-colors duration-150
                 "
               />
-              <span className="text-[0.8125rem] text-secondary shrink-0">
-                yds
-              </span>
+              <span className="text-[0.8125rem] text-secondary shrink-0">yds</span>
             </div>
           </div>
         ))}
       </div>
-
-      <Button onClick={handleSave} disabled={saving}>
-        {saving ? "Saving..." : saved ? "Saved!" : "Save Distances"}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : "Save Distances"}
+        </Button>
+        <Button variant="ghost" onClick={() => { setDistances({ ...savedDistances }); setEditing(false); }}>
+          Cancel
+        </Button>
+      </div>
     </div>
   );
 }

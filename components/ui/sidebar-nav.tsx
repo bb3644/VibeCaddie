@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+import { Logo } from "./logo";
 import type { NavItem } from "./bottom-nav";
 
 interface SidebarNavProps {
@@ -67,18 +67,11 @@ export function SidebarNav({ items }: SidebarNavProps) {
   }
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 z-50 hidden lg:flex flex-col w-[240px] border-r border-divider" style={{ background: "#F5F0E8" }}>
+    <aside className="fixed left-0 top-0 bottom-0 z-50 hidden lg:flex flex-col w-[240px] border-r border-divider" style={{ background: "#F5F4EF" }}>
       {/* Logo */}
-      <div className="px-2 pt-3 pb-2 border-b border-divider">
+      <div className="px-2 pt-[12px] pb-3 border-b border-divider">
         <Link href="/">
-          <Image
-            src="/logo-crop.png"
-            alt="Vibe Caddie"
-            width={1200}
-            height={420}
-            className="w-full h-auto"
-            priority
-          />
+          <Logo className="w-full h-auto" />
         </Link>
       </div>
 

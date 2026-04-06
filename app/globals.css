@@ -2,15 +2,15 @@
 
 @theme {
   /* ---------- Colors — Masters Green + Rose Gold ---------- */
-  --color-bg: #F5F0E8;
-  --color-card: #FFFFFF;
-  --color-text: #1C1C1C;
-  --color-secondary: #7A7068;
+  --color-bg: #F5F4EF;
+  --color-card: #F5E0D8;
+  --color-text: #235D3E;
+  --color-secondary: #8A7060;
   --color-accent: #235D3E;
   --color-accent-hover: #1A4830;
   --color-pink: #C49A8A;
   --color-pink-hover: #B08070;
-  --color-divider: #E3DAD0;
+  --color-divider: #DBC5BA;
 
   /* ---------- Shadows ---------- */
   --shadow-card: 0 1px 3px rgba(35, 93, 62, 0.08), 0 1px 2px rgba(35, 93, 62, 0.05);

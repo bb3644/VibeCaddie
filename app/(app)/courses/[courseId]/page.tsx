@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
@@ -35,7 +35,7 @@ interface CourseDetail extends Course {
   tees: CourseTee[];
 }
 
-export default function CourseDetailPage() {
+function CourseDetailContent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -580,5 +580,13 @@ export default function CourseDetailPage() {
         </Link>
       )}
     </div>
+  );
+}
+
+export default function CourseDetailPage() {
+  return (
+    <Suspense>
+      <CourseDetailContent />
+    </Suspense>
   );
 }
