@@ -15,8 +15,8 @@ export default function LoginPage() {
           <Image
             src="/logo-crop.png"
             alt="Vibe Caddie"
-            width={1800}
-            height={471}
+            width={1200}
+            height={420}
             className="w-[280px] h-auto"
             priority
           />

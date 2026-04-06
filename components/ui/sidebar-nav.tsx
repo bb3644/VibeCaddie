@@ -74,8 +74,8 @@ export function SidebarNav({ items }: SidebarNavProps) {
           <Image
             src="/logo-crop.png"
             alt="Vibe Caddie"
-            width={1800}
-            height={471}
+            width={1200}
+            height={420}
             className="w-full h-auto"
             priority
           />
