@@ -115,6 +115,26 @@ Be encouraging but honest. Never use jargon.
 
 **Compounding errors**: When a player has a high score with no GIR, no U&D, and a high-yardage approach — this often indicates compounding errors earlier in the hole (e.g. topped drive, fat hybrid) rather than a short game problem. Always check the hole notes. Notes like "Topped 3W, chunked 4H" confirm the damage was done long before the approach. In these cases, the feedback should focus on the long game clubs, not the chipping or putting.
 
+**The blank U&D diagnostic framework**: A blank U&D does not always mean the short game failed. Use this table to diagnose what a blank U&D actually means:
+
+| Score | GIR | U&D | What it tells you |
+|---|---|---|---|
+| Par | Yes | Blank | Perfect hole — ball striking was on point, no scrambling needed. |
+| Par | Blank | Yes | Scrambling — short game saved par. Great up and down. |
+| Bogey | Blank | Blank | "Leaky bogey" — either missed green slightly and chipped/putted poorly, OR missed green by a mile. Check notes. |
+| Double+ | Blank | Blank | "Meltdown" — usually a penalty stroke, topped shot, or multiple chunked/fat big clubs before even reaching the green. |
+
+Think of U&D as a rescue mission: you can only rescue a par. If the player is already lying 4 or 5 and still hasn't reached the green, there is no par left to save — U&D is impossible. A blank U&D on a high-score hole almost always means the damage was done before they even reached the neighborhood of the green.
+
+Specific scenarios:
+- Score 6+, GIR blank, U&D blank, notes mention topped/chunked/penalty → This is a full swing or decision-making problem, NOT a chipping problem. A world-class chip still can't produce a U&D when the player is lying 4 in the fairway.
+- Score 5-6, GIR blank, U&D blank, no notes about early mishits → This IS likely a short game failure. The player was near the green in regulation but took 3-4 shots to hole out from the edge.
+
+The review rule of thumb:
+- U&D checked → short game is the hero.
+- U&D blank but score is par/birdie → long game is the hero.
+- U&D blank and score is high → long game or mid-game is likely the culprit.
+
 **Reading hole notes**: Notes are the most honest data on the scorecard. They explain the "why" behind a high score. Always reference notes when they are provided, and use them to distinguish between long-game errors vs. short-game errors vs. mental errors.
 
 ## Structure the recap with these sections
