@@ -17,84 +17,125 @@ export async function handleChatMessage(
   message: string,
   history?: ChatMessage[],
 ): Promise<string> {
-  // 1. 并行获取球员上下文
-  const [profile, rounds, briefings] = await Promise.all([
+  // 1. Load player profile + all rounds + briefings in parallel
+  const [profile, allRounds, briefings] = await Promise.all([
     getPlayerProfile(userId),
     getPlayerRounds(userId),
     getPlayerBriefings(userId),
   ]);
 
-  // 2. 获取最近 3 轮的洞详情
-  const recentRounds = rounds.slice(0, 3);
+  // 2. Load per-hole details (including notes and recap text) for last 5 rounds
+  const recentRounds = allRounds.slice(0, 5);
   const roundDetails = await Promise.all(
-    recentRounds.map(async (r) => {
-      const holes = await getRoundHoles(r.id);
-      return { ...r, holes };
-    })
+    recentRounds.map(async (r) => ({
+      ...r,
+      holes: await getRoundHoles(r.id),
+    }))
   );
 
-  // 3. 加载全部知识库
+  // 3. Full knowledge base
   const knowledge = getAllKnowledge();
 
-  // 4. 拼装上下文 prompt
+  // 4. Build context prompt
   let contextPrompt = '';
 
+  // Player identity
   if (profile) {
-    contextPrompt += `Player: ${profile.name}`;
-    if (profile.handicap_index) contextPrompt += `, Handicap: ${profile.handicap_index}`;
+    contextPrompt += `## Player\n`;
+    contextPrompt += `Name: ${profile.name}`;
+    if (profile.handicap_index) contextPrompt += `, Handicap Index: ${profile.handicap_index}`;
+    if (profile.sex) contextPrompt += `, ${profile.sex}`;
     contextPrompt += '\n\n';
   }
 
-  if (roundDetails.length > 0) {
-    contextPrompt += `Recent rounds:\n`;
-    for (const r of roundDetails) {
-      const fwCount = r.holes.filter((h: RoundHole) => h.tee_result === 'FW').length;
-      contextPrompt += `- ${r.course_name || 'Unknown'} (${r.tee_name || '?'}) on ${r.played_date}: Score ${r.total_score || '?'}, ${fwCount} fairways\n`;
+  // Full score history (all rounds — just dates + scores for trend)
+  if (allRounds.length > 0) {
+    contextPrompt += `## Score History (all rounds, newest first)\n`;
+    for (const r of allRounds) {
+      contextPrompt += `${r.played_date} — ${r.course_name || 'Unknown'} (${r.tee_name || '?'} tee): Score ${r.total_score ?? '?'}\n`;
+    }
+
+    // Overall trend
+    const withScores = allRounds.filter(r => r.total_score != null);
+    if (withScores.length >= 3) {
+      const oldest = withScores[withScores.length - 1].total_score as number;
+      const newest = withScores[0].total_score as number;
+      if (newest < oldest) contextPrompt += `Overall trend: improving (${oldest} → ${newest})\n`;
+      else if (newest > oldest) contextPrompt += `Overall trend: getting worse (${oldest} → ${newest})\n`;
+      else contextPrompt += `Overall trend: flat\n`;
     }
     contextPrompt += '\n';
   }
 
+  // Detailed recent rounds: hole-by-hole including notes and recap
+  if (roundDetails.length > 0) {
+    contextPrompt += `## Recent Round Details (last ${roundDetails.length} rounds)\n`;
+    for (const r of roundDetails) {
+      const fwCount = r.holes.filter((h: RoundHole) => h.tee_result === 'FW').length;
+      const girCount = r.holes.filter((h: RoundHole) => h.approach_distance === 'GIR').length;
+      contextPrompt += `\n### ${r.played_date} — ${r.course_name || 'Unknown'} (${r.tee_name || '?'} tee), Score: ${r.total_score ?? '?'}\n`;
+      contextPrompt += `Fairways: ${fwCount}/${r.holes.length}, GIR: ${girCount}/${r.holes.length}\n`;
+
+      // Hole notes from this round
+      const notedHoles = r.holes.filter((h: RoundHole) => h.hole_notes);
+      if (notedHoles.length > 0) {
+        contextPrompt += `Hole notes:\n`;
+        for (const h of notedHoles) {
+          contextPrompt += `  Hole ${h.hole_number}: "${h.hole_notes}"\n`;
+        }
+      }
+
+      // Per-hole score summary (compact)
+      const holeScores = r.holes
+        .filter((h: RoundHole) => h.score != null)
+        .map((h: RoundHole) => `H${h.hole_number}:${h.score}`)
+        .join(' ');
+      if (holeScores) contextPrompt += `Scores: ${holeScores}\n`;
+
+      // Previous recap text
+      if (r.recap_text) {
+        contextPrompt += `Recap from that round:\n${r.recap_text}\n`;
+      }
+    }
+    contextPrompt += '\n';
+  }
+
+  // Latest briefing
   if (briefings.length > 0) {
-    const latestBriefing = briefings[0];
-    contextPrompt += `Latest briefing (${latestBriefing.play_date}):\n`;
-    const bj = latestBriefing.briefing_json;
+    const b = briefings[0];
+    contextPrompt += `## Latest Pre-Round Briefing (${b.play_date})\n`;
+    const bj = b.briefing_json;
     if (bj) {
       contextPrompt += `Control holes: ${bj.control_holes?.join(', ') || 'none'}\n`;
       contextPrompt += `Driver OK: ${bj.driver_ok_holes?.join(', ') || 'none'}\n`;
+      if (bj.display_text) contextPrompt += `Briefing text:\n${bj.display_text}\n`;
     }
     contextPrompt += '\n';
   }
 
+  // Knowledge base
   if (knowledge.length > 0) {
-    contextPrompt += `Golf course management knowledge base:\n`;
+    contextPrompt += `## Golf Course Management Knowledge Base\n`;
     for (const k of knowledge) {
       contextPrompt += `- [${k.source}] ${k.principle}\n`;
     }
     contextPrompt += '\n';
   }
 
-  // 5. 构建多轮对话 messages
+  // 5. Build multi-turn messages
   const systemPrompt = CHAT_SYSTEM_PROMPT + '\n\n' + contextPrompt;
-
   const llmMessages: Array<{ role: string; content: string }> = [];
 
-  // 加入历史对话（跳过 welcome message，最多保留最近 20 条）
   if (history && history.length > 0) {
-    const recent = history.slice(-20);
-    for (const msg of recent) {
+    for (const msg of history.slice(-20)) {
       llmMessages.push({ role: msg.role, content: msg.content });
     }
   }
+  if (message) llmMessages.push({ role: 'user', content: message });
 
-  // 加入当前消息
-  if (message) {
-    llmMessages.push({ role: 'user', content: message });
-  }
-
-  // 6. 调用 LLM（多轮）
+  // 6. Call LLM
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) throw new Error('OPENROUTER_API_KEY is not configured');
-
   const model = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-001';
 
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -128,4 +169,3 @@ export async function handleChatMessage(
 
   return data.choices[0].message.content;
 }
-

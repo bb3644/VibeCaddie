@@ -2,10 +2,10 @@ import { computeBriefing, BriefingData, HoleInput, PlayerHistoryInput } from './
 import { callLLM, BRIEFING_SYSTEM_PROMPT } from './llm';
 import { getCourseHoles, getHoleHazards, getOfficialNotesForCourse, getPlayerNotes } from '@/lib/db/courses';
 import { getPlayerClubDistances, getPlayerHoleHistory } from '@/lib/db/players';
+import { getPlayerRounds, getRoundHoles } from '@/lib/db/rounds';
 import { createBriefing as saveBriefing } from '@/lib/db/briefings';
 import { BriefingJson, OfficialHoleNote, PlayerHoleNote } from '@/lib/db/types';
 import { query } from '@/lib/db/client';
-
 import { getAllKnowledge } from './knowledge';
 
 const KNOWLEDGE_PRINCIPLES = getAllKnowledge();
@@ -55,7 +55,7 @@ export async function generateBriefing(
   const driverDist = distances.find(d => d.club_code === 'D');
   const playerDistance = { driver_carry: driverDist?.typical_carry_yards ?? null };
 
-  // 4. Player history
+  // 4. Player history (aggregated)
   const histories = await getPlayerHoleHistory(userId, courseTeeId);
   const historyInputs: PlayerHistoryInput[] = histories.map(h => ({
     hole_number: h.hole_number,
@@ -64,19 +64,30 @@ export async function generateBriefing(
     penalties: h.penalties,
   }));
 
-  // 5. Strategy engine
+  // 5. Recent rounds on this course (for score trend + previous notes + recap advice)
+  const allRounds = await getPlayerRounds(userId);
+  const prevRoundsOnCourse = allRounds.filter(r => r.course_tee_id === courseTeeId).slice(0, 3);
+  const prevRoundDetails = await Promise.all(
+    prevRoundsOnCourse.map(async (r) => ({
+      ...r,
+      holes: await getRoundHoles(r.id),
+    }))
+  );
+
+  // 6. Strategy engine
   const briefingData: BriefingData = computeBriefing(holesWithHazards, historyInputs, playerDistance);
 
-  // 6. Assemble prompt with all context
+  // 7. Assemble prompt with all context
   const userPrompt = assembleBriefingPrompt(
     briefingData,
     holes,
     holesWithExtras.map(x => x.playerNotes),
     officialNotes,
     historyInputs,
+    prevRoundDetails,
   );
 
-  // 7. Call LLM
+  // 8. Call LLM
   const llmResponse = await callLLM(BRIEFING_SYSTEM_PROMPT, userPrompt);
 
   // 8. Build briefing JSON
@@ -94,6 +105,7 @@ export async function generateBriefing(
   };
 
   // 9. Save
+
   const saved = await saveBriefing(userId, {
     course_tee_id: courseTeeId,
     play_date: playDate,
@@ -103,12 +115,21 @@ export async function generateBriefing(
   return { id: saved.id, briefingJson };
 }
 
+type PrevRoundDetail = {
+  id: string;
+  played_date: string;
+  total_score: number | null;
+  recap_text: string | null;
+  holes: Awaited<ReturnType<typeof getRoundHoles>>;
+};
+
 function assembleBriefingPrompt(
   data: BriefingData,
   holes: Awaited<ReturnType<typeof getCourseHoles>>,
   allPlayerNotes: PlayerHoleNote[][],
   officialNotes: Record<number, OfficialHoleNote>,
   histories: PlayerHistoryInput[],
+  prevRoundDetails: PrevRoundDetail[],
 ): string {
   let prompt = `Generate a pre-round briefing for an ${holes.length}-hole round.\n\n`;
 
@@ -137,17 +158,46 @@ function assembleBriefingPrompt(
     prompt += '\n';
   }
 
+  // Previous rounds on this course
+  if (prevRoundDetails.length > 0) {
+    prompt += `\n## Player's Previous Rounds on This Course\n`;
+
+    const withScores = prevRoundDetails.filter(r => r.total_score != null);
+    if (withScores.length > 0) {
+      const scoreTrend = [...withScores].reverse().map(r => `${r.played_date}: ${r.total_score}`).join(' → ');
+      prompt += `Score history: ${scoreTrend}\n`;
+    }
+
+    // Hole notes from previous rounds (patterns)
+    const allPrevNotes: Array<{ holeNumber: number; note: string; date: string }> = [];
+    for (const r of prevRoundDetails) {
+      for (const h of r.holes) {
+        if (h.hole_notes) allPrevNotes.push({ holeNumber: h.hole_number, note: h.hole_notes, date: r.played_date });
+      }
+    }
+    if (allPrevNotes.length > 0) {
+      prompt += `Hole notes from recent rounds:\n`;
+      for (const n of allPrevNotes) {
+        prompt += `  Hole ${n.holeNumber} (${n.date}): "${n.note}"\n`;
+      }
+    }
+
+    // Last recap advice (what did we tell them last time?)
+    const lastRecap = prevRoundDetails.find(r => r.recap_text);
+    if (lastRecap?.recap_text) {
+      prompt += `Last round recap advice:\n${lastRecap.recap_text}\n`;
+    }
+  }
+
+  // Aggregated trouble holes
   if (histories.length > 0) {
-    prompt += `\n## Player History on This Course\n`;
-    prompt += `The player has played ${Math.max(...histories.map(h => h.rounds_played))} rounds here before.\n`;
     const troubleHoles = histories.filter(h => h.penalties > 0);
     if (troubleHoles.length > 0) {
-      prompt += `Trouble holes (penalties): ${troubleHoles.map(h => `Hole ${h.hole_number} (${h.penalties} penalties in ${h.rounds_played} rounds)`).join(', ')}\n`;
+      prompt += `\nTrouble holes (all-time penalties): ${troubleHoles.map(h => `Hole ${h.hole_number} (${h.penalties}x in ${h.rounds_played} rounds)`).join(', ')}\n`;
     }
   }
 
   prompt += `\n## Course Management Principles\n`;
-  prompt += `Apply these principles when giving advice:\n`;
   for (const p of KNOWLEDGE_PRINCIPLES) {
     prompt += `- ${p.principle}\n`;
   }
