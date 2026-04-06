@@ -140,7 +140,7 @@ export function BriefingDisplay({ briefing }: BriefingDisplayProps) {
         </div>
         <Button
           variant="ghost"
-          onClick={() => window.print()}
+          onClick={() => window.open(`/print/briefing/${briefing.id}`, "_blank")}
           className="shrink-0"
         >
           <svg
