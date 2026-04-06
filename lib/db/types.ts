@@ -130,6 +130,8 @@ export interface RoundHole {
   approach_club: string | null;
   approach_distance: 'GIR' | 'SHORT' | 'LONG' | null;
   approach_direction: 'CENTER' | 'LEFT' | 'RIGHT' | null;
+  approach_yardage: number | null;
+  up_down: boolean | null;
   recovery_club: string | null;
   score: number | null;
   putts: number | null;

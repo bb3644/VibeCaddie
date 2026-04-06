@@ -145,6 +145,8 @@ export interface HoleLocalData {
   approach_club: string;
   approach_distance: string;
   approach_direction: string;
+  approach_yardage: number | null;
+  up_down: boolean | null;
   recovery_club: string;
   bunker_count: number;
   water_count: number;
@@ -184,6 +186,8 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
     const [approachClub,     setApproachClub]     = useState(localData?.approach_club     ?? initialData?.approach_club     ?? "");
     const [approachDistance, setApproachDistance] = useState(localData?.approach_distance ?? initialData?.approach_distance ?? "");
     const [approachDirection,setApproachDirection]= useState(localData?.approach_direction ?? initialData?.approach_direction ?? "");
+    const [approachYardage,  setApproachYardage]  = useState<number | null>(localData?.approach_yardage ?? initialData?.approach_yardage ?? null);
+    const [upDown,           setUpDown]           = useState<boolean | null>(localData?.up_down ?? initialData?.up_down ?? null);
     const [recoveryClub,     setRecoveryClub]     = useState(localData?.recovery_club     ?? initialData?.recovery_club     ?? "");
     const [bunkerCount,   setBunkerCount]   = useState(localData?.bunker_count   ?? initialData?.bunker_count   ?? 0);
     const [waterCount,    setWaterCount]    = useState(localData?.water_count    ?? initialData?.water_count    ?? 0);
@@ -201,6 +205,8 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
       setApproachClub    (localData?.approach_club     ?? initialData?.approach_club     ?? "");
       setApproachDistance(localData?.approach_distance ?? initialData?.approach_distance ?? "");
       setApproachDirection(localData?.approach_direction ?? initialData?.approach_direction ?? "");
+      setApproachYardage (localData?.approach_yardage  ?? initialData?.approach_yardage  ?? null);
+      setUpDown          (localData?.up_down           ?? initialData?.up_down           ?? null);
       setRecoveryClub    (localData?.recovery_club     ?? initialData?.recovery_club     ?? "");
       setBunkerCount  (localData?.bunker_count   ?? initialData?.bunker_count   ?? 0);
       setWaterCount   (localData?.water_count    ?? initialData?.water_count    ?? 0);
@@ -211,19 +217,21 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
     }, [holeNumber, initialData, localData, par]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const buildLocal = useCallback((): HoleLocalData => ({
-      hole_number:       holeNumber,
-      tee_club:          teeClub,
-      tee_result:        teeResult,
-      approach_club:     approachClub,
-      approach_distance: approachDistance,
-      approach_direction:approachDirection,
-      recovery_club:     recoveryClub,
-      bunker_count:      bunkerCount,
-      water_count:       waterCount,
-      penalty_count:     penaltyCount,
+      hole_number:        holeNumber,
+      tee_club:           teeClub,
+      tee_result:         teeResult,
+      approach_club:      approachClub,
+      approach_distance:  approachDistance,
+      approach_direction: approachDirection,
+      approach_yardage:   approachYardage,
+      up_down:            upDown,
+      recovery_club:      recoveryClub,
+      bunker_count:       bunkerCount,
+      water_count:        waterCount,
+      penalty_count:      penaltyCount,
       score,
       putts,
-    }), [holeNumber, teeClub, teeResult, approachClub, approachDistance, approachDirection, recoveryClub, bunkerCount, waterCount, penaltyCount, score, putts]);
+    }), [holeNumber, teeClub, teeResult, approachClub, approachDistance, approachDirection, approachYardage, upDown, recoveryClub, bunkerCount, waterCount, penaltyCount, score, putts]);
 
     const doApiSave = useCallback(async () => {
       setSaving(true);
@@ -236,9 +244,11 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
             tee_club:          teeClub          || undefined,
             tee_result:        teeResult        || undefined,
             approach_club:     approachClub     || undefined,
-            approach_distance: approachDistance || undefined,
-            approach_direction:approachDirection || undefined,
-            recovery_club:     recoveryClub     || undefined,
+            approach_distance:  approachDistance || undefined,
+            approach_direction: approachDirection || undefined,
+            approach_yardage:   approachYardage ?? undefined,
+            up_down:            upDown ?? undefined,
+            recovery_club:      recoveryClub     || undefined,
             score,
             putts,
             bunker_count:  bunkerCount,
@@ -263,7 +273,7 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
         setSaving(false);
       }
       return false;
-    }, [roundId, holeNumber, teeClub, teeResult, approachClub, approachDistance, approachDirection, recoveryClub, score, putts, bunkerCount, waterCount, penaltyCount, onSave]);
+    }, [roundId, holeNumber, teeClub, teeResult, approachClub, approachDistance, approachDirection, approachYardage, upDown, recoveryClub, score, putts, bunkerCount, waterCount, penaltyCount, onSave]);
 
     useImperativeHandle(ref, () => ({
       save: async () => {
@@ -341,7 +351,25 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
             selected={approachClub}
             onSelect={(c) => { setApproachClub(c); mark(); }}
           />
-          {/* Distance: GIR / Short / Long */}
+          {/* Approach distance in yards */}
+          <div className="flex items-center gap-2">
+            <label className="text-[0.8125rem] text-secondary shrink-0">Distance (yds)</label>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={999}
+              value={approachYardage ?? ""}
+              onChange={(e) => {
+                const v = e.target.value === "" ? null : parseInt(e.target.value, 10);
+                setApproachYardage(isNaN(v as number) ? null : v);
+                mark();
+              }}
+              placeholder="e.g. 120"
+              className="w-24 rounded-lg border border-divider bg-white px-3 py-2 text-[0.9375rem] text-text outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+            />
+          </div>
+          {/* GIR / Short / Long */}
           <div className="grid grid-cols-3 gap-2">
             {APPROACH_DISTANCES.map((d) => {
               const st = APPROACH_DISTANCE_STYLES[d];
@@ -387,6 +415,40 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
                   </button>
                 );
               })}
+            </div>
+          )}
+          {/* U/D — only when missed green */}
+          {(approachDistance === "SHORT" || approachDistance === "LONG") && (
+            <div className="flex items-center gap-3">
+              <span className="text-[0.8125rem] text-secondary shrink-0">Up & Down</span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setUpDown(upDown === true ? null : true); mark(); }}
+                  className={`
+                    min-h-[40px] px-5 rounded-lg border text-[0.875rem] font-semibold
+                    transition-colors duration-150 cursor-pointer
+                    ${upDown === true
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"}
+                  `}
+                >
+                  Up ✓
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setUpDown(upDown === false ? null : false); mark(); }}
+                  className={`
+                    min-h-[40px] px-5 rounded-lg border text-[0.875rem] font-semibold
+                    transition-colors duration-150 cursor-pointer
+                    ${upDown === false
+                      ? "bg-red-500 text-white border-red-500"
+                      : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"}
+                  `}
+                >
+                  Down ✗
+                </button>
+              </div>
             </div>
           )}
         </div>

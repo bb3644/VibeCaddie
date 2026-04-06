@@ -28,6 +28,8 @@ export async function PUT(
       approach_club,
       approach_distance,
       approach_direction,
+      approach_yardage,
+      up_down,
       recovery_club,
       score,
       putts,
@@ -41,6 +43,8 @@ export async function PUT(
       approach_club?: string;
       approach_distance?: string;
       approach_direction?: string;
+      approach_yardage?: number;
+      up_down?: boolean;
       recovery_club?: string;
       score?: number;
       putts?: number;
@@ -80,6 +84,8 @@ export async function PUT(
       approach_club: approach_club || undefined,
       approach_distance: safeApproachDistance,
       approach_direction: safeApproachDirection,
+      approach_yardage: approach_yardage ?? undefined,
+      up_down: up_down ?? undefined,
       recovery_club: recovery_club || undefined,
       score,
       putts,
