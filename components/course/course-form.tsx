@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -36,6 +36,7 @@ export function CourseForm() {
   const [duplicates, setDuplicates] = useState<Course[] | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const submittingRef = useRef(false); // guard against concurrent submits
 
   function updateTee(idx: number, field: keyof TeeInput, value: string) {
     setTees((prev) =>
@@ -69,6 +70,7 @@ export function CourseForm() {
   }
 
   async function handleSubmit(force = false) {
+    if (submittingRef.current) return; // block concurrent calls
     setError("");
     setDuplicates(null);
 
@@ -78,6 +80,7 @@ export function CourseForm() {
     }
     if (!validateTees()) return;
 
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       // 1. 创建球场
@@ -95,6 +98,7 @@ export function CourseForm() {
         const data = await courseRes.json();
         setDuplicates(data.duplicates as Course[]);
         setSubmitting(false);
+        submittingRef.current = false;
         return;
       }
 
@@ -137,6 +141,7 @@ export function CourseForm() {
     } catch {
       setError("Something went wrong. Please try again.");
       setSubmitting(false);
+      submittingRef.current = false;
     }
   }
 

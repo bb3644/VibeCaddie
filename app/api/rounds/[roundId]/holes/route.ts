@@ -31,6 +31,7 @@ export async function PUT(
       approach_yardage,
       up_down,
       recovery_club,
+      hole_notes,
       score,
       putts,
       bunker_count,
@@ -46,6 +47,7 @@ export async function PUT(
       approach_yardage?: number;
       up_down?: boolean;
       recovery_club?: string;
+      hole_notes?: string;
       score?: number;
       putts?: number;
       bunker_count?: number;
@@ -87,6 +89,7 @@ export async function PUT(
       approach_yardage: approach_yardage ?? undefined,
       up_down: up_down ?? undefined,
       recovery_club: recovery_club || undefined,
+      hole_notes: hole_notes || undefined,
       score,
       putts,
       bunker_count: bunker_count ?? 0,

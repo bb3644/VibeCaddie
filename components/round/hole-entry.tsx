@@ -148,6 +148,7 @@ export interface HoleLocalData {
   approach_yardage: number | null;
   up_down: boolean | null;
   recovery_club: string;
+  hole_notes: string;
   bunker_count: number;
   water_count: number;
   penalty_count: number;
@@ -189,6 +190,7 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
     const [approachYardage,  setApproachYardage]  = useState<number | null>(localData?.approach_yardage ?? initialData?.approach_yardage ?? null);
     const [upDown,           setUpDown]           = useState<boolean | null>(localData?.up_down ?? initialData?.up_down ?? null);
     const [recoveryClub,     setRecoveryClub]     = useState(localData?.recovery_club     ?? initialData?.recovery_club     ?? "");
+    const [holeNotes,        setHoleNotes]        = useState(localData?.hole_notes        ?? initialData?.hole_notes        ?? "");
     const [bunkerCount,   setBunkerCount]   = useState(localData?.bunker_count   ?? initialData?.bunker_count   ?? 0);
     const [waterCount,    setWaterCount]    = useState(localData?.water_count    ?? initialData?.water_count    ?? 0);
     const [penaltyCount,  setPenaltyCount]  = useState(localData?.penalty_count  ?? initialData?.penalty_count  ?? 0);
@@ -208,6 +210,7 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
       setApproachYardage (localData?.approach_yardage  ?? initialData?.approach_yardage  ?? null);
       setUpDown          (localData?.up_down           ?? initialData?.up_down           ?? null);
       setRecoveryClub    (localData?.recovery_club     ?? initialData?.recovery_club     ?? "");
+      setHoleNotes       (localData?.hole_notes        ?? initialData?.hole_notes        ?? "");
       setBunkerCount  (localData?.bunker_count   ?? initialData?.bunker_count   ?? 0);
       setWaterCount   (localData?.water_count    ?? initialData?.water_count    ?? 0);
       setPenaltyCount (localData?.penalty_count  ?? initialData?.penalty_count  ?? 0);
@@ -226,12 +229,13 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
       approach_yardage:   approachYardage,
       up_down:            upDown,
       recovery_club:      recoveryClub,
+      hole_notes:         holeNotes,
       bunker_count:       bunkerCount,
       water_count:        waterCount,
       penalty_count:      penaltyCount,
       score,
       putts,
-    }), [holeNumber, teeClub, teeResult, approachClub, approachDistance, approachDirection, approachYardage, upDown, recoveryClub, bunkerCount, waterCount, penaltyCount, score, putts]);
+    }), [holeNumber, teeClub, teeResult, approachClub, approachDistance, approachDirection, approachYardage, upDown, recoveryClub, holeNotes, bunkerCount, waterCount, penaltyCount, score, putts]);
 
     const doApiSave = useCallback(async () => {
       setSaving(true);
@@ -249,6 +253,7 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
             approach_yardage:   approachYardage ?? undefined,
             up_down:            upDown ?? undefined,
             recovery_club:      recoveryClub     || undefined,
+            hole_notes:         holeNotes        || undefined,
             score,
             putts,
             bunker_count:  bunkerCount,
@@ -273,7 +278,7 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
         setSaving(false);
       }
       return false;
-    }, [roundId, holeNumber, teeClub, teeResult, approachClub, approachDistance, approachDirection, approachYardage, upDown, recoveryClub, score, putts, bunkerCount, waterCount, penaltyCount, onSave]);
+    }, [roundId, holeNumber, teeClub, teeResult, approachClub, approachDistance, approachDirection, approachYardage, upDown, recoveryClub, holeNotes, score, putts, bunkerCount, waterCount, penaltyCount, onSave]);
 
     useImperativeHandle(ref, () => ({
       save: async () => {
@@ -421,34 +426,19 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
           {(approachDistance === "SHORT" || approachDistance === "LONG") && (
             <div className="flex items-center gap-3">
               <span className="text-[0.8125rem] text-secondary shrink-0">Up & Down</span>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => { setUpDown(upDown === true ? null : true); mark(); }}
-                  className={`
-                    min-h-[40px] px-5 rounded-lg border text-[0.875rem] font-semibold
-                    transition-colors duration-150 cursor-pointer
-                    ${upDown === true
-                      ? "bg-green-600 text-white border-green-600"
-                      : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"}
-                  `}
-                >
-                  Up ✓
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setUpDown(upDown === false ? null : false); mark(); }}
-                  className={`
-                    min-h-[40px] px-5 rounded-lg border text-[0.875rem] font-semibold
-                    transition-colors duration-150 cursor-pointer
-                    ${upDown === false
-                      ? "bg-red-500 text-white border-red-500"
-                      : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"}
-                  `}
-                >
-                  Down ✗
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => { setUpDown(upDown === true ? null : true); mark(); }}
+                className={`
+                  min-h-[40px] px-5 rounded-lg border text-[0.875rem] font-semibold
+                  transition-colors duration-150 cursor-pointer
+                  ${upDown === true
+                    ? "bg-green-600 text-white border-green-600"
+                    : "bg-white text-secondary border-divider hover:bg-bg"}
+                `}
+              >
+                {upDown === true ? "✓ Yes" : "Yes"}
+              </button>
             </div>
           )}
         </div>
@@ -488,6 +478,18 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
               onChange={(v) => { setPenaltyCount(v); mark(); }}
             />
           </div>
+        </div>
+
+        {/* ⑥ Notes */}
+        <div className="flex flex-col gap-2">
+          <p className="text-[0.875rem] font-semibold text-text">Notes</p>
+          <textarea
+            value={holeNotes}
+            onChange={(e) => { setHoleNotes(e.target.value); mark(); }}
+            placeholder="Anything worth remembering about this hole..."
+            rows={3}
+            className="w-full rounded-lg border border-divider bg-white px-3 py-2.5 text-[0.9375rem] leading-relaxed text-text placeholder:text-secondary outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none"
+          />
         </div>
 
         {/* Save status */}

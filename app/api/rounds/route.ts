@@ -24,9 +24,10 @@ export async function POST(request: NextRequest) {
   try {
     const userId = await getUserId();
     const body = await request.json();
-    const { course_tee_id, played_date } = body as {
+    const { course_tee_id, played_date, holes_played } = body as {
       course_tee_id: string;
       played_date: string;
+      holes_played?: number;
     };
 
     if (!course_tee_id || !played_date) {
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const round = await createRound(userId, { course_tee_id, played_date });
+    const round = await createRound(userId, { course_tee_id, played_date, holes_played: holes_played ?? 18 });
     return NextResponse.json(round, { status: 201 });
   } catch (error) {
     if ((error as Error).message === "Unauthorized") {

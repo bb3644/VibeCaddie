@@ -67,29 +67,44 @@ export function PhotoUpload({ onResult }: PhotoUploadProps) {
       const base = results[0];
       if (!base.tees?.length) throw new Error("No scorecard data found in first photo.");
 
-      // Build a merged tees array: for each tee in the base, merge holes from matching tees in other images
+      // Debug: log raw OCR data per image
+      results.forEach((r, i) => {
+        const t = r.tees?.[0];
+        console.log(`[OCR result ${i}] tee: ${t?.tee_name} / ${t?.tee_color}, holes 1-9:`, JSON.stringify(t?.holes?.slice(0, 9)));
+      });
+
+      // Each image returns all 18 holes but uses 0 for holes it can't see.
+      // For each hole number, pick the best (non-zero) value from any image.
       const mergedTees = base.tees.map((baseTee) => {
-        const allHoles = [...(baseTee.holes ?? [])];
-        for (const other of results.slice(1)) {
-          const matchingTee =
-            other.tees?.find(
-              (t) =>
-                t.tee_name === baseTee.tee_name ||
-                t.tee_color === baseTee.tee_color
-            ) ?? other.tees?.[0];
-          if (matchingTee?.holes) {
-            for (const hole of matchingTee.holes) {
-              if (!allHoles.find((h) => h.hole_number === hole.hole_number)) {
-                allHoles.push(hole);
-              }
+        // Collect the matching tee from every result
+        const allTees = results.map(
+          (r) =>
+            r.tees?.find(
+              (t) => t.tee_name === baseTee.tee_name || t.tee_color === baseTee.tee_color
+            ) ?? r.tees?.[0]
+        );
+
+        // Build a per-hole-number map of best values
+        const holeMap: Record<number, { hole_number: number; par: number; yardage: number; si: number; hole_note?: string }> = {};
+        for (const tee of allTees) {
+          for (const h of tee?.holes ?? []) {
+            const num = h.hole_number;
+            if (num < 1 || num > 18) continue; // skip totals rows misread as hole 0 etc
+            if (!holeMap[num]) {
+              holeMap[num] = { hole_number: num, par: 0, yardage: 0, si: 0 };
             }
+            if (h.par > 0) holeMap[num].par = h.par;
+            if (h.yardage > 0) holeMap[num].yardage = h.yardage;
+            if (h.si && h.si > 0) holeMap[num].si = h.si;
+            if (h.hole_note) holeMap[num].hole_note = h.hole_note;
           }
         }
-        allHoles.sort((a, b) => a.hole_number - b.hole_number);
+
+        const mergedHoles = Object.values(holeMap).sort((a, b) => a.hole_number - b.hole_number);
         return {
           ...baseTee,
-          holes: allHoles,
-          par_total: allHoles.reduce((s, h) => s + h.par, 0),
+          holes: mergedHoles,
+          par_total: mergedHoles.reduce((s, h) => s + h.par, 0),
         };
       });
 

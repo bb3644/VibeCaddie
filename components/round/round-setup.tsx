@@ -24,8 +24,8 @@ function todayString(): string {
 }
 
 interface RoundSetupProps {
-  /** 创建成功后回调，传入 roundId 和 courseTeeId */
-  onCreated: (roundId: string, courseTeeId: string) => void;
+  /** 创建成功后回调，传入 roundId、courseTeeId、holesPlayed、startHole */
+  onCreated: (roundId: string, courseTeeId: string, holesPlayed: 9 | 18, startHole: 1 | 10) => void;
 }
 
 /** 轮次设置组件：选择球场 -> Tee -> 日期 -> 开始录入 */
@@ -43,6 +43,15 @@ export function RoundSetup({ onCreated }: RoundSetupProps) {
 
   // 步骤 3：选择日期
   const [playDate, setPlayDate] = useState(todayString());
+
+  // 步骤 4：选择洞数
+  type HoleOption = { holesPlayed: 9 | 18; startHole: 1 | 10; label: string; sub: string };
+  const HOLE_OPTIONS: HoleOption[] = [
+    { holesPlayed: 18, startHole: 1,  label: "Full 18",   sub: "Holes 1–18" },
+    { holesPlayed: 9,  startHole: 1,  label: "Front 9",   sub: "Holes 1–9" },
+    { holesPlayed: 9,  startHole: 10, label: "Back 9",    sub: "Holes 10–18" },
+  ];
+  const [selectedHoleOption, setSelectedHoleOption] = useState<HoleOption>(HOLE_OPTIONS[0]);
 
   // 创建状态
   const [creating, setCreating] = useState(false);
@@ -122,12 +131,13 @@ export function RoundSetup({ onCreated }: RoundSetupProps) {
         body: JSON.stringify({
           course_tee_id: selectedTeeId,
           played_date: playDate,
+          holes_played: selectedHoleOption.holesPlayed,
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
-        onCreated(data.id, selectedTeeId);
+        onCreated(data.id, selectedTeeId, selectedHoleOption.holesPlayed, selectedHoleOption.startHole);
       } else {
         const errData = await res.json().catch(() => null);
         setError(errData?.error ?? "Failed to create round.");
@@ -305,6 +315,39 @@ export function RoundSetup({ onCreated }: RoundSetupProps) {
               focus:border-accent focus:ring-1 focus:ring-accent
             "
           />
+        </Card>
+      )}
+
+      {/* 步骤 4：选择洞数 */}
+      {selectedTeeId && playDate && (
+        <Card>
+          <SectionTitle className="mb-3">4. Number of Holes</SectionTitle>
+          <div className="flex flex-col gap-2">
+            {HOLE_OPTIONS.map((opt) => {
+              const isSelected = opt.label === selectedHoleOption.label;
+              return (
+                <button
+                  key={opt.label}
+                  onClick={() => setSelectedHoleOption(opt)}
+                  className={`
+                    flex items-center gap-3 w-full rounded-lg px-4 py-3
+                    border transition-colors duration-150 cursor-pointer text-left
+                    ${isSelected ? "border-accent bg-accent/5" : "border-divider hover:bg-bg"}
+                  `}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-[0.9375rem] font-medium text-text">{opt.label}</span>
+                    <span className="text-[0.8125rem] text-secondary">{opt.sub}</span>
+                  </div>
+                  {isSelected && (
+                    <svg className="w-5 h-5 text-accent ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </Card>
       )}
 

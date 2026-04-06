@@ -265,6 +265,7 @@ function NewRoundContent() {
             approach_yardage:   local.approach_yardage  ?? undefined,
             up_down:            local.up_down           ?? undefined,
             recovery_club:      local.recovery_club     || undefined,
+            hole_notes:         local.hole_notes        || undefined,
             score:          local.score,
             putts:          local.putts,
             bunker_count:   local.bunker_count,

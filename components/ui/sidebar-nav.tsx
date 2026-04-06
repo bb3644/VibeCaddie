@@ -72,6 +72,7 @@ export function SidebarNav({ items }: SidebarNavProps) {
         <span className="text-[1.25rem] font-semibold text-text">
           Vibe Caddie
         </span>
+        <p className="text-[0.6875rem] text-secondary mt-0.5">created by Fan &amp; Fan</p>
       </div>
 
       {/* 导航链接 */}

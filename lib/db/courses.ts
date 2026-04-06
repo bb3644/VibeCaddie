@@ -15,12 +15,30 @@ export async function searchCourses(searchTerm: string): Promise<Course[]> {
     `SELECT id, name, location_text, latitude, longitude, course_note, created_at
      FROM courses
      WHERE lower(name) LIKE '%' || $1 || '%'
-        OR similarity(lower(name), $1) > 0.2
+        OR similarity(lower(name), $1) > 0.4
      ORDER BY
        CASE WHEN lower(name) LIKE '%' || $1 || '%' THEN 0 ELSE 1 END,
        similarity(lower(name), $1) DESC
      LIMIT 10`,
     [normalized]
+  );
+  return result.rows;
+}
+
+/**
+ * Duplicate detection: only returns courses with very high name similarity (≥0.6)
+ * or whose normalised name is an exact substring match of the query (same length ±10%).
+ * This avoids false positives like "Sudbury" matching "Golf de Chailly".
+ */
+export async function findDuplicateCourses(normalizedName: string): Promise<Course[]> {
+  const result = await query<Course>(
+    `SELECT id, name, location_text, latitude, longitude, course_note, created_at
+     FROM courses
+     WHERE similarity(lower(name), $1) >= 0.6
+        OR lower(name) = $1
+     ORDER BY similarity(lower(name), $1) DESC
+     LIMIT 5`,
+    [normalizedName]
   );
   return result.rows;
 }

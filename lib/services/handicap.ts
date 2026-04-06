@@ -40,7 +40,11 @@ export async function calculateAndSaveVibecaddieIndex(userId: string): Promise<n
 
   const differentials = rounds
     .filter(r => r.total_score !== null && r.course_rating !== null && r.slope_rating !== null)
-    .map(r => calculateDifferential(r.total_score!, r.course_rating!, r.slope_rating!));
+    .map(r => {
+      // For 9-hole rounds, double the score to get an 18-hole equivalent differential
+      const score = (r.holes_played === 9) ? r.total_score! * 2 : r.total_score!;
+      return calculateDifferential(score, r.course_rating!, r.slope_rating!);
+    });
 
   if (differentials.length < 3) return null;
 

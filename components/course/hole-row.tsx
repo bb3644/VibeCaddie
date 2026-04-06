@@ -244,55 +244,47 @@ export function HoleRow({
         </button>
       </div>
 
-      {/* 洞注释 — 始终可见，点击内联编辑 */}
-      <div className="ml-10">
-        {editingNote ? (
-          <input
-            autoFocus
-            type="text"
-            value={noteDraft}
-            onChange={(e) => setNoteDraft(e.target.value)}
-            onBlur={commitNote}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") commitNote();
-              if (e.key === "Escape") {
+      {/* 洞注释 — 有内容时显示，点击内联编辑 */}
+      {holeNote && (
+        <div className="ml-10">
+          {editingNote ? (
+            <input
+              autoFocus
+              type="text"
+              value={noteDraft}
+              onChange={(e) => setNoteDraft(e.target.value)}
+              onBlur={commitNote}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitNote();
+                if (e.key === "Escape") {
+                  setNoteDraft(holeNote);
+                  setEditingNote(false);
+                }
+              }}
+              placeholder="Add a note..."
+              className="w-full rounded-md border border-divider px-2.5 py-2 text-[0.8125rem] text-text placeholder:text-secondary outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+            />
+          ) : (
+            <span
+              onClick={() => {
                 setNoteDraft(holeNote);
-                setEditingNote(false);
-              }
-            }}
-            placeholder="Add a note..."
-            className="w-full rounded-md border border-divider px-2.5 py-2 text-[0.8125rem] text-text placeholder:text-secondary outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-          />
-        ) : holeNote ? (
-          <span
-            onClick={() => {
-              setNoteDraft(holeNote);
-              setEditingNote(true);
-            }}
-            className="text-[0.8125rem] text-secondary cursor-pointer hover:text-text group inline-flex items-start gap-1.5"
-            title="Click to edit"
-          >
-            {holeNote}
-            <svg
-              className="w-3 h-3 mt-0.5 opacity-0 group-hover:opacity-60 transition-opacity shrink-0"
-              fill="currentColor"
-              viewBox="0 0 18 18"
+                setEditingNote(true);
+              }}
+              className="text-[0.8125rem] text-secondary cursor-pointer hover:text-text group inline-flex items-start gap-1.5"
+              title="Click to edit"
             >
-              <path d="M3 13.5V15H4.5L12.06 7.44L10.56 5.94L3 13.5ZM14.46 5.04C14.61 4.89 14.61 4.64 14.46 4.49L13.01 3.04C12.86 2.89 12.61 2.89 12.46 3.04L11.69 3.81L13.19 5.31L14.46 5.04Z" />
-            </svg>
-          </span>
-        ) : (
-          <button
-            onClick={() => {
-              setNoteDraft("");
-              setEditingNote(true);
-            }}
-            className="text-[0.75rem] text-secondary/60 hover:text-secondary cursor-pointer"
-          >
-            + Add note
-          </button>
-        )}
-      </div>
+              {holeNote}
+              <svg
+                className="w-3 h-3 mt-0.5 opacity-0 group-hover:opacity-60 transition-opacity shrink-0"
+                fill="currentColor"
+                viewBox="0 0 18 18"
+              >
+                <path d="M3 13.5V15H4.5L12.06 7.44L10.56 5.94L3 13.5ZM14.46 5.04C14.61 4.89 14.61 4.64 14.46 4.49L13.01 3.04C12.86 2.89 12.61 2.89 12.46 3.04L11.69 3.81L13.19 5.31L14.46 5.04Z" />
+              </svg>
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Official + Player Notes panel */}
       {showNotes && (
@@ -300,7 +292,7 @@ export function HoleRow({
           {/* Official note */}
           <div className="flex flex-col gap-1">
             <span className="text-[0.75rem] font-medium text-secondary uppercase tracking-wide">
-              Official note
+              Official Notes
             </span>
             <textarea
               rows={2}

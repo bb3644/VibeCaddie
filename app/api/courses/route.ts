@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserId } from "@/lib/auth/session";
-import { listCourses, createCourse, searchCourses } from "@/lib/db/courses";
+import { listCourses, createCourse, findDuplicateCourses } from "@/lib/db/courses";
 import { normalizeName } from "@/lib/services/course";
 
 /** GET /api/courses — 列出所有球场（含 tee 数量） */
@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
 
     await getUserId();
 
-    // 查重：用标准化名称搜索相似球场
+    // Duplicate check: only flag truly similar names (high threshold)
     if (!force) {
       const normalized = normalizeName(name);
-      const duplicates = await searchCourses(normalized);
+      const duplicates = await findDuplicateCourses(normalized);
       if (duplicates.length > 0) {
         return NextResponse.json({ duplicates }, { status: 409 });
       }

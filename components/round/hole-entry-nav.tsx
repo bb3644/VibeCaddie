@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 interface HoleEntryNavProps {
   currentHole: number;
   totalHoles: number;
-  /** 每个洞是否有数据（数组索引 0 = Hole 1） */
+  /** 起始洞号（默认 1；Back 9 时传 10） */
+  startHole?: number;
+  /** 每个洞是否有数据（数组索引 0 = startHole） */
   holesWithData: boolean[];
   onPrev: () => void;
   onNext: () => void;
@@ -18,21 +20,22 @@ interface HoleEntryNavProps {
 export function HoleEntryNav({
   currentHole,
   totalHoles,
+  startHole = 1,
   holesWithData,
   onPrev,
   onNext,
   onFinish,
   onJumpTo,
 }: HoleEntryNavProps) {
-  const isFirst = currentHole === 1;
-  const isLast = currentHole === totalHoles;
+  const isFirst = currentHole === startHole;
+  const isLast = currentHole === startHole + totalHoles - 1;
 
   return (
     <div className="flex flex-col gap-4">
       {/* 洞号圆点指示器 */}
       <div className="flex justify-center gap-1.5 flex-wrap">
         {Array.from({ length: totalHoles }, (_, i) => {
-          const holeNum = i + 1;
+          const holeNum = startHole + i;
           const hasData = holesWithData[i] ?? false;
           const isCurrent = holeNum === currentHole;
 
@@ -64,7 +67,7 @@ export function HoleEntryNav({
 
       {/* 当前洞号 / 总洞数 */}
       <p className="text-center text-[0.875rem] text-secondary">
-        {currentHole} / {totalHoles}
+        Hole {currentHole} · {totalHoles} holes
       </p>
 
       {/* 导航按钮 */}

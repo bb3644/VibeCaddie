@@ -151,22 +151,31 @@ export default function HolesPage() {
   }
 
   function applyToHoles() {
-    const merged: Record<number, OcrHole> = {};
+    // Debug: log what each image returned
+    for (const img of pendingImages) {
+      if (img.status !== "done" || !img.result) continue;
+      const tee = img.result.tees[img.selectedTeeIdx] ?? img.result.tees[0];
+      console.log(`[OCR image ${img.file.name}] tee:`, tee?.tee_name, tee?.tee_color);
+      console.log(`[OCR image ${img.file.name}] holes:`, JSON.stringify(tee?.holes?.slice(0, 9)));
+    }
+
+    // Merge across all images: for each hole, prefer non-zero values from any image
+    const holeMap: Record<number, OcrHole> = {};
     for (const img of pendingImages) {
       if (img.status !== "done" || !img.result) continue;
       const tee = img.result.tees[img.selectedTeeIdx] ?? img.result.tees[0];
       if (!tee?.holes) continue;
       for (const hole of tee.holes) {
-        merged[hole.hole_number] = {
-          hole_number: hole.hole_number,
-          par: hole.par,
-          yardage: hole.yardage,
-          si: hole.si,
-          hole_note: hole.hole_note,
-        };
+        const num = hole.hole_number;
+        if (num < 1 || num > 18) continue; // skip spurious rows (totals misread as hole 0 etc)
+        if (!holeMap[num]) holeMap[num] = { hole_number: num, par: 0, yardage: 0 };
+        if (hole.par > 0) holeMap[num].par = hole.par;
+        if (hole.yardage > 0) holeMap[num].yardage = hole.yardage;
+        if (hole.si && hole.si > 0) holeMap[num].si = hole.si;
+        if (hole.hole_note) holeMap[num].hole_note = hole.hole_note;
       }
     }
-    const arr = Object.values(merged).sort((a, b) => a.hole_number - b.hole_number);
+    const arr = Object.values(holeMap).sort((a, b) => a.hole_number - b.hole_number);
     if (arr.length > 0) setFillFromOcr(arr);
     setPendingImages([]);
   }

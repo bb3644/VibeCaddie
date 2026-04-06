@@ -133,6 +133,7 @@ export interface RoundHole {
   approach_yardage: number | null;
   up_down: boolean | null;
   recovery_club: string | null;
+  hole_notes: string | null;
   score: number | null;
   putts: number | null;
   bunker_count: number;
