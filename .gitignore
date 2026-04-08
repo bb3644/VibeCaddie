@@ -47,8 +47,14 @@ firebase-debug.log
 # books (large binary files)
 books/
 
+# migration scripts (may contain local DB credentials)
+scripts/
+
 # preview screenshots
 *.png
 
 # playwright MCP
 .playwright-mcp/
+
+# Added by ggshield
+.cache_ggshield
