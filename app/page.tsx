@@ -18,7 +18,7 @@ export default async function Home() {
         {/* 品牌标识 */}
         <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center">
           <svg
-            className="w-8 h-8 text-white"
+            className="w-8 h-8 text-pink"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -51,7 +51,7 @@ export default async function Home() {
           className="
             inline-flex items-center justify-center
             w-full max-w-[280px] min-h-[48px] rounded-lg px-6 py-3
-            bg-accent text-white font-medium text-[1rem]
+            bg-accent text-pink font-medium text-[1rem]
             hover:bg-accent-hover active:bg-accent-hover
             transition-colors duration-150
           "

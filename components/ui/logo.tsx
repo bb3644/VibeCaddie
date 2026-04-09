@@ -9,37 +9,37 @@ export function Logo({ className = "" }: LogoProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 260 64"
+      viewBox="0 0 260 80"
       className={className}
       role="img"
       aria-label="Vibe Caddie"
     >
-      {/* "Vibe Caddie" */}
+      {/* "Vibe Caddie" — bold serif, large */}
       <text
         x="130"
-        y="38"
-        fontFamily="var(--font-cormorant), 'Palatino Linotype', Palatino, Georgia, serif"
-        fontSize="36"
-        fontWeight="600"
-        fill="#235D3E"
-        letterSpacing="-0.5"
+        y="46"
+        fontFamily="var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif"
+        fontSize="38"
+        fontWeight="700"
+        fill="#007749"
+        letterSpacing="-1.5"
         textAnchor="middle"
       >
         Vibe Caddie
       </text>
 
-      {/* Rose-gold divider line */}
-      <line x1="30" y1="46" x2="230" y2="46" stroke="#C49A8A" strokeWidth="0.8" />
+      {/* Pink accent line */}
+      <line x1="20" y1="56" x2="240" y2="56" stroke="#F4B8B0" strokeWidth="1.2" />
 
       {/* "GOLF CURATION" */}
       <text
         x="130"
-        y="58"
-        fontFamily="var(--font-inter), 'Helvetica Neue', Arial, sans-serif"
-        fontSize="8.5"
-        fontWeight="400"
-        fill="#C49A8A"
-        letterSpacing="3"
+        y="70"
+        fontFamily="var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif"
+        fontSize="8"
+        fontWeight="500"
+        fill="#F4B8B0"
+        letterSpacing="4"
         textAnchor="middle"
       >
         GOLF CURATION

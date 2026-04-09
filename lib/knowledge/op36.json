@@ -1,0 +1,131 @@
+{
+  "source": "Operation 36 Program",
+  "chunks": [
+    {
+      "id": "op36_program_overview",
+      "topic": "op36",
+      "principle": "Operation 36 is a developmental golf program where players tee off from progressively longer distances, starting at 25 yards and working up to 160 yards, with the goal of shooting 36 or better for 9 holes at each distance.",
+      "application": "A player at Level 1 tees off from 25 yards on every hole. The pass mark is ≤36 strokes for 9 holes (par 36), or ≤72 for 18 holes. Advance on a pass, drop back one level on a miss."
+    },
+    {
+      "id": "op36_points_system",
+      "topic": "op36",
+      "principle": "Op36 uses a points system to reward quality ball-striking beyond just score: +1 for GIR (Green in Regulation), +1 for Up & Down, +2 for Birdie or better, -1 for 3-putt or worse.",
+      "application": "Mastery = pass AND earn ≥18 points (9 holes) or ≥36 points (18 holes) in the same round. A player can pass without mastery. Mastery signals the player is truly ready to move up."
+    },
+    {
+      "id": "op36_short_game_focus",
+      "topic": "op36_short_game",
+      "principle": "At lower levels (1-4), the game is almost entirely short game: chipping, pitching, and putting from 25–100 yards. Driving is not in play. Score is determined by how cleanly the player gets the ball onto the green and one-putts.",
+      "application": "At Level 1-2, a high putt count is the #1 score killer. If a player is hitting greens but three-putting, the problem is putting distance control. If they are missing greens and not getting Up & Downs, the problem is chipping consistency."
+    },
+    {
+      "id": "op36_mid_iron_levels",
+      "topic": "op36_irons",
+      "principle": "At Levels 5-7 (110-130 yards), the player is hitting full irons for the first time. These levels introduce the transition from short game dominance to approach accuracy. GIR becomes achievable but requires solid iron contact.",
+      "application": "A player at Level 5-7 who has good putting but poor GIR is likely struggling with iron contact or distance control. The fix is not more practice greens — it is better iron ballstriking. If GIR is 0-1 per 9 holes at these levels, focus the coaching on full swing iron contact."
+    },
+    {
+      "id": "op36_driver_levels",
+      "topic": "op36_driver",
+      "principle": "At Levels 8-10 (140-160 yards), the driver and long irons come into play for the first time. This is the most significant jump in the program — the player now faces tee-shot decisions and penalty risk.",
+      "application": "Players often struggle at Level 8+ not because of short game regression, but because of tee shot penalties and poor club selection off the tee. A high score at Level 8 with many OB/penalty strokes signals a tee club management problem, not a putting problem."
+    },
+    {
+      "id": "op36_three_putt_cost",
+      "topic": "op36_putting",
+      "principle": "Three-putts are double-punished in Op36: they cost one stroke (bogey risk) AND subtract 1 point from the points total. At lower levels where score is tight, a three-putt is often the difference between passing and failing.",
+      "application": "If a player has 3+ three-putts in a round, the primary coaching focus should be lag putting — getting the first putt within tap-in range. At Op36 levels, speed control matters more than line."
+    },
+    {
+      "id": "op36_birdie_value",
+      "topic": "op36_scoring",
+      "principle": "Birdies earn +2 points, making them extremely valuable for mastery. A player who scores par or better on several holes while passing can dramatically accelerate their points total.",
+      "application": "At Levels 1-3 (25-75 yards), birdies are achievable for beginners with a good chip and one-putt. Encourage players to hole out aggressively rather than lagging for par — the birdie bonus is worth the risk."
+    },
+    {
+      "id": "op36_advancement_patience",
+      "topic": "op36_progression",
+      "principle": "Getting demoted back one level in Op36 is not failure — it is part of the design. The program is built to find the level where the player is genuinely comfortable and then push them up when ready.",
+      "application": "A demotion means the player needs more reps at the previous level. Treat a demotion round as a data point: what specifically caused the miss? High putts? No U&Ds? A few blow-up holes? Identify the pattern and give the player one specific thing to practise before the next round."
+    },
+    {
+      "id": "op36_stay_result",
+      "topic": "op36_progression",
+      "principle": "At Level 1, a miss results in 'Stay' (not demote) because there is nowhere lower to go. A stay at Level 1 still provides useful data on what is holding the player back.",
+      "application": "A Level 1 stay round with high score usually means too many three-putts or missed short chips. The player needs repetitions with a putter and a wedge inside 30 feet before returning to the course."
+    },
+    {
+      "id": "op36_graduate",
+      "topic": "op36_graduation",
+      "principle": "A player graduates Op36 by passing Level 10 (160 yards). This milestone signifies the player can shoot a net 36 from a full course distance — a foundational achievement in recreational golf development.",
+      "application": "After graduation, the caddie's feedback should shift to handicap improvement, full-course course management, and maximising the scoring categories that were strongest throughout the Op36 journey."
+    },
+    {
+      "id": "op36_gir_at_levels",
+      "topic": "op36_gir",
+      "principle": "GIR expectation scales with level. At Level 1 (25 yards), a good player should hit nearly all 9 greens. At Level 5 (110 yards), 3-5 GIR per 9 is solid. At Level 10 (160 yards), 4-6 GIR per 9 is excellent for a recreational player.",
+      "application": "Use GIR relative to level as a benchmark. A player at Level 3 with 0 GIR is struggling with chipping to the green; the fix is short-game technique. A player at Level 8 with 0 GIR is struggling with iron contact or distance control."
+    },
+    {
+      "id": "op36_ud_at_levels",
+      "topic": "op36_scrambling",
+      "principle": "Up & Down is the great separator at the lower levels. If a player can chip and one-putt consistently, they can pass Op36 even with imperfect ball-striking. At Levels 1-4, U&D rate is more predictive of success than GIR.",
+      "application": "A player at Level 1-4 with 4+ U&Ds in 9 holes is showing excellent short-game competence. Coach them to get even more GIRs to reduce the scrambling burden. A player with 0-1 U&Ds should focus entirely on chipping and short putting practice."
+    },
+    {
+      "id": "op36_three_putt_threshold",
+      "topic": "op36_putting",
+      "principle": "If a player has more than 18 putts per 9 holes, their score is almost entirely determined by putting, not ball-striking. This is the first stat to check after any round over 36.",
+      "application": "When total putts exceed 18 for 9 holes, the fix is not changing the swing — it is 20 minutes on the practice green before the next round, focusing on lag putting distance control. The swing is not the problem."
+    },
+    {
+      "id": "op36_gir_ud_ratio_diagnostic",
+      "topic": "op36_analysis",
+      "principle": "The GIR vs U&D ratio is the most revealing diagnostic in Op36. High GIR means ball-striking is consistent and the player is ready for more distance. Low GIR + High U&D is the Scrambler pattern — short game is saving the score but the swing is shaky. Low GIR + Low U&D is the Danger Zone — missing greens AND compounding with poor chips. Stay at the current distance until chipping improves.",
+      "application": "Use this ratio to direct the coaching focus after every round: if GIR is high, the player is swing-ready for the next level. If U&D is saving rounds, the player is surviving but not ready to move up. If both are low, chipping is the only priority."
+    },
+    {
+      "id": "op36_stall_analysis",
+      "topic": "op36_progression",
+      "principle": "A stall is when a player plays 4+ rounds at the same level and scores stay within 1-2 strokes of the pass mark without breaking through. Stalls are broken by hole-specific analysis, not by trying harder overall.",
+      "application": "When stalled, identify the specific holes costing strokes: bunker holes indicate a sand game problem; long par 5s may indicate stamina or focus drop; the 9th hole specifically may indicate a mental/pressure pattern. Name the pattern and give one targeted fix — not generic encouragement."
+    },
+    {
+      "id": "op36_technical_wall",
+      "topic": "op36_progression",
+      "principle": "A Technical Wall occurs when a player advances quickly through early levels but suddenly requires many more rounds to pass a specific level. This usually marks the point where a short-game chip swing breaks down under a longer full swing.",
+      "application": "If a player passes Levels 1-4 in 2 rounds each but then spends 10 rounds at Level 5, the wall is almost always a mechanical flaw that only appears at full swing length. The analysis question is: what changed at this distance? Usually accuracy drops when the backswing gets longer."
+    },
+    {
+      "id": "op36_rounds_to_pass_metric",
+      "topic": "op36_analysis",
+      "principle": "Rounds to Pass is a key efficiency metric for Op36 progress. If it stays consistent (e.g. 3 rounds to pass every level), skill is growing in line with the challenge. If Rounds to Pass suddenly spikes at a level, that level marks a technical wall that needs targeted practice, not just more play.",
+      "application": "Track Rounds to Pass per level over time. A spike of 3x or more rounds at any level compared to previous levels is a signal to stop and diagnose — not to keep grinding. The data will point to the specific skill that has not kept pace with the distance increase."
+    },
+    {
+      "id": "op36_scrambling_as_progression_signal",
+      "topic": "op36_analysis",
+      "principle": "Comparing scrambling percentage (U&D rate) from early levels to later levels reveals whether a player has truly developed or just advanced on ball-striking alone. If scrambling stays high all the way from 25 yards to 150 yards, the player has become a Scorer — combining ball-striking with short-game recovery. This is the ultimate Op36 outcome.",
+      "application": "At the transition to longer distances (Levels 8-10), pull up the player's U&D rate from their early level rounds and compare it to now. Maintained or improved U&D rate across levels = full skill development. Declining U&D at later levels = the player advanced on GIR alone and short game needs attention."
+    },
+    {
+      "id": "op36_blow_up_hole_pattern",
+      "topic": "op36_analysis",
+      "principle": "A score over 36 is rarely caused by consistent bogeys across all 9 holes — it is almost always caused by 1-3 blow-up holes (scores of 6, 7, or worse) while the rest of the card is acceptable. Identify the blow-up holes first.",
+      "application": "When a player misses the pass mark, look for the 2-3 holes where they scored 6+. These are the only holes that need fixing. A player who shots 4-4-4-4-4-4-4-4-8 does not need to overhaul their game — they need to manage one specific hole or situation differently."
+    },
+    {
+      "id": "op36_post_round_timing",
+      "topic": "op36_analysis",
+      "principle": "Post-round analysis should happen after the round is complete, not during it. During play, the player should focus only on the next shot — hit, move, hit, move. Analysis and reflection belong to the cool-down, not the green.",
+      "application": "If a player is mentally reviewing mistakes on hole 4 while standing on the tee at hole 5, they are already behind. Coach the player to treat the scorecard as a data collection tool during the round and a learning tool after. All understanding happens over a drink after the 18th hole."
+    },
+    {
+      "id": "op36_9th_hole_pressure",
+      "topic": "op36_mental",
+      "principle": "Choking on the 9th hole — a high score on the final hole when the player was near the pass mark — is one of the most common Op36 failure patterns. It is caused by score awareness replacing shot focus in the final hole.",
+      "application": "If a player's 9th hole scores are consistently higher than their 1st-through-8th hole average, the issue is mental not technical. The player is calculating their total score on the 9th tee instead of executing their routine. Coaching cue: treat hole 9 as hole 1 of a new round. Focus on the target, not the scorecard."
+    }
+  ]
+}

@@ -49,6 +49,13 @@ function SidebarIcon({ icon, active }: { icon: NavItem["icon"]; active: boolean 
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
       );
+    case "op36":
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <text x="12" y="16" textAnchor="middle" fontSize="9" fontWeight="700" fill={stroke} stroke="none" fontFamily="sans-serif">36</text>
+        </svg>
+      );
   }
 }
 
@@ -69,14 +76,14 @@ export function SidebarNav({ items }: SidebarNavProps) {
   return (
     <aside className="fixed left-0 top-0 bottom-0 z-50 hidden lg:flex flex-col w-[240px] border-r border-divider" style={{ background: "#F5F4EF" }}>
       {/* Logo */}
-      <div className="px-2 pt-[12px] pb-3 border-b border-divider">
+      <div className="px-4 pt-6 pb-5 border-b border-divider">
         <Link href="/">
           <Logo className="w-full h-auto" />
         </Link>
       </div>
 
       {/* 导航链接 */}
-      <nav className="flex-1 px-3">
+      <nav className="flex-1 px-3 pt-4">
         {items.map((item) => {
           const active = pathname === item.href;
           return (
@@ -102,7 +109,7 @@ export function SidebarNav({ items }: SidebarNavProps) {
         })}
       </nav>
 
-      {/* 切换球员 */}
+      {/* Switch Player */}
       <div className="px-3 pb-4">
         <button
           onClick={switchProfile}
@@ -120,7 +127,7 @@ export function SidebarNav({ items }: SidebarNavProps) {
             <circle cx="8.5" cy="7" r="4" />
             <polyline points="17 11 19 13 23 9" />
           </svg>
-          <span>切换球员</span>
+          <span>Switch Player</span>
         </button>
       </div>
     </aside>

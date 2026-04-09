@@ -52,7 +52,7 @@ export function HoleEntryNav({
                 ${onJumpTo ? "cursor-pointer" : "cursor-default"}
                 ${
                   isCurrent
-                    ? "bg-accent text-white ring-2 ring-accent/30"
+                    ? "bg-accent text-pink ring-2 ring-accent/30"
                     : hasData
                     ? "bg-accent/20 text-accent hover:bg-accent/30"
                     : "bg-gray-200 text-secondary hover:bg-gray-300"

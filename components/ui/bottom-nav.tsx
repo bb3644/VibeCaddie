@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 export interface NavItem {
   label: string;
   href: string;
-  icon: "home" | "map" | "clipboard" | "user" | "chat";
+  icon: "home" | "map" | "clipboard" | "user" | "chat" | "op36";
 }
 
 interface BottomNavProps {
@@ -51,6 +51,13 @@ function NavIcon({ icon, active }: { icon: NavItem["icon"]; active: boolean }) {
       return (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      );
+    case "op36":
+      return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <text x="12" y="16" textAnchor="middle" fontSize="9" fontWeight="700" fill={stroke} stroke="none" fontFamily="sans-serif">36</text>
         </svg>
       );
   }

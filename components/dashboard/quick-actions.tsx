@@ -11,7 +11,7 @@ export function QuickActions() {
           <p className="text-[1.125rem] font-semibold text-white">
             Play Round
           </p>
-          <p className="text-[0.875rem] text-white/80 mt-1">
+          <p className="text-[0.875rem] text-pink/80 mt-1">
             Prepare your Vibe Caddie plan
           </p>
         </div>
@@ -22,7 +22,7 @@ export function QuickActions() {
           <p className="text-[1.125rem] font-semibold text-white">
             Add Round Recap
           </p>
-          <p className="text-[0.875rem] text-white/80 mt-1">
+          <p className="text-[0.875rem] text-pink/80 mt-1">
             Record what happened
           </p>
         </div>

@@ -98,7 +98,7 @@ export default function ProfilePage() {
           Profile & Settings
         </h1>
         <Button variant="ghost" onClick={switchProfile} className="text-[0.8125rem]">
-          切换球员
+          Switch Player
         </Button>
       </div>
 

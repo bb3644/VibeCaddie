@@ -185,7 +185,7 @@ export function HoleRow({
                 text-[0.875rem] font-medium transition-colors cursor-pointer
                 ${
                   par === p
-                    ? "bg-accent text-white"
+                    ? "bg-accent text-pink"
                     : "bg-white border border-divider text-text hover:bg-gray-50"
                 }
               `}

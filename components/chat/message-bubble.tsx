@@ -26,7 +26,7 @@ export function MessageBubble({ role, content }: MessageBubbleProps) {
             text-[0.9375rem] leading-[1.5rem]
             ${
               isUser
-                ? "bg-accent text-white"
+                ? "bg-accent text-pink"
                 : "bg-card border border-divider text-text"
             }
           `}

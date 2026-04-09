@@ -125,7 +125,7 @@ export function HazardAddForm({ onAdd, onCancel }: HazardAddFormProps) {
                 text-[0.8125rem] font-medium transition-colors cursor-pointer
                 ${
                   side === s
-                    ? "bg-accent text-white"
+                    ? "bg-accent text-pink"
                     : "bg-white border border-divider text-text hover:bg-gray-50"
                 }
               `}
@@ -151,7 +151,7 @@ export function HazardAddForm({ onAdd, onCancel }: HazardAddFormProps) {
                 text-[0.8125rem] font-medium transition-colors cursor-pointer
                 ${
                   type === t
-                    ? "bg-accent text-white"
+                    ? "bg-accent text-pink"
                     : "bg-white border border-divider text-text hover:bg-gray-50"
                 }
               `}

@@ -13,7 +13,7 @@ interface ButtonProps {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-accent text-white hover:bg-accent-hover active:bg-accent-hover",
+    "bg-accent text-pink hover:bg-accent-hover active:bg-accent-hover",
   secondary:
     "border border-accent/30 text-accent hover:bg-accent/5 active:bg-accent/5",
   ghost:

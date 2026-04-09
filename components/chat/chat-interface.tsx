@@ -149,7 +149,7 @@ export function ChatInterface() {
             className="
               inline-flex items-center justify-center
               min-h-[44px] min-w-[44px] rounded-lg
-              bg-accent text-white
+              bg-accent text-pink
               hover:bg-accent-hover active:bg-accent-hover
               transition-colors duration-150
               disabled:opacity-50 disabled:pointer-events-none

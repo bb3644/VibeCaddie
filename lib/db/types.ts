@@ -153,6 +153,65 @@ export interface PlayerHoleHistory {
 }
 
 // ============================================================
+// Operation 36
+// ============================================================
+
+export interface Op36Progress {
+  id: string;
+  user_id: string;
+  current_level: number;
+  updated_at: string;
+}
+
+export interface Op36Round {
+  id: string;
+  user_id: string;
+  played_at: string;
+  level: number;
+  distance_label: string;
+  nines: 'front' | 'back' | 'both';
+  front_holes: Record<string, unknown>[] | null;
+  back_holes: Record<string, unknown>[] | null;
+  front_score: number | null;
+  back_score: number | null;
+  total_score: number;
+  total_putts: number | null;
+  girs: number | null;
+  uds: number | null;
+  birdies: number | null;
+  three_putts: number | null;
+  points: number;
+  mastery: boolean;
+  result: 'advance' | 'demote' | 'stay' | 'graduate';
+  level_after: number;
+  notes: string | null;
+  feedback: string | null;
+  created_at: string;
+}
+
+export interface SaveOp36RoundData {
+  played_at: string;
+  level: number;
+  distance_label: string;
+  nines: 'front' | 'back' | 'both';
+  front_holes?: Record<string, unknown>[] | null;
+  back_holes?: Record<string, unknown>[] | null;
+  front_score?: number | null;
+  back_score?: number | null;
+  total_score: number;
+  total_putts?: number | null;
+  girs?: number | null;
+  uds?: number | null;
+  birdies?: number | null;
+  three_putts?: number | null;
+  points: number;
+  mastery: boolean;
+  result: 'advance' | 'demote' | 'stay' | 'graduate';
+  level_after: number;
+  notes?: string | null;
+}
+
+// ============================================================
 // Briefing JSON 结构
 // ============================================================
 

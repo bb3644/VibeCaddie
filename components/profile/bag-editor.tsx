@@ -120,7 +120,7 @@ export function BagEditor({ initial, onSaved }: BagEditorProps) {
                 cursor-pointer
                 ${
                   isEnabled
-                    ? "bg-accent text-white"
+                    ? "bg-accent text-pink"
                     : "bg-bg text-secondary border border-divider"
                 }
               `}

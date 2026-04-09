@@ -1,6 +1,7 @@
 import architectureData from '@/lib/knowledge/architecture.json';
 import anatomyData from '@/lib/knowledge/anatomy.json';
 import foundationsData from '@/lib/knowledge/foundations.json';
+import op36Data from '@/lib/knowledge/op36.json';
 
 export interface KnowledgeChunk {
   id: string;
@@ -14,6 +15,7 @@ const allChunks: KnowledgeChunk[] = [
   ...architectureData.chunks.map(c => ({ ...c, source: architectureData.source })),
   ...anatomyData.chunks.map(c => ({ ...c, source: anatomyData.source })),
   ...foundationsData.chunks.map(c => ({ ...c, source: foundationsData.source })),
+  ...op36Data.chunks.map(c => ({ ...c, source: op36Data.source })),
 ];
 
 /**
