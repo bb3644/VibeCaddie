@@ -40,7 +40,10 @@ export async function POST(request: NextRequest) {
     if (round.girs != null) prompt += `GIRs: ${round.girs}\n`;
     if (round.uds != null) prompt += `Up & Downs: ${round.uds}\n`;
     if (round.birdies != null) prompt += `Birdies: ${round.birdies}\n`;
+    if (round.pars != null) prompt += `Pars: ${round.pars}\n`;
     if (round.three_putts != null) prompt += `3-putts: ${round.three_putts}\n`;
+    if (round.four_putts != null) prompt += `4-putts: ${round.four_putts}\n`;
+    if (round.double_bogey_plus != null) prompt += `Double bogey+: ${round.double_bogey_plus}\n`;
     if (round.front_score != null) prompt += `Front 9 score: ${round.front_score}\n`;
     if (round.back_score != null) prompt += `Back 9 score: ${round.back_score}\n`;
 

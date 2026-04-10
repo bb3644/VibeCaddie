@@ -135,14 +135,18 @@ function RoundCard({ round: initialRound, onDeleted }: { round: Op36Round; onDel
       <p className="text-xs text-secondary">{round.distance_label} · {ninesLabel(round.nines)}</p>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
+      <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 text-center">
         {[
           { label: "Score", value: round.total_score },
           { label: "Points", value: round.points },
           { label: "Putts", value: round.total_putts ?? "—" },
           { label: "GIRs", value: round.girs ?? "—" },
           { label: "U&Ds", value: round.uds ?? "—" },
+          { label: "Birdies", value: round.birdies ?? "—" },
+          { label: "Pars", value: round.pars ?? "—" },
           { label: "3-putts", value: round.three_putts ?? "—" },
+          { label: "4-putts", value: round.four_putts ?? "—" },
+          { label: "Dbl Bog+", value: round.double_bogey_plus ?? "—" },
         ].map(({ label, value }) => (
           <div key={label}>
             <div className="text-[10px] text-secondary">{label}</div>

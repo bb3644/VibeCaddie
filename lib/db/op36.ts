@@ -94,13 +94,15 @@ export async function saveOp36Round(
       `INSERT INTO op36_rounds (
          user_id, played_at, level, distance_label, nines,
          front_holes, back_holes, front_score, back_score,
-         total_score, total_putts, girs, uds, birdies, three_putts,
+         total_score, total_putts, girs, uds, birdies, pars,
+         three_putts, four_putts, double_bogey_plus,
          points, mastery, result, level_after, notes
        ) VALUES (
          $1, $2, $3, $4, $5,
          $6, $7, $8, $9,
          $10, $11, $12, $13, $14, $15,
-         $16, $17, $18, $19, $20
+         $16, $17, $18,
+         $19, $20, $21, $22, $23
        )
        RETURNING *`,
       [
@@ -118,7 +120,10 @@ export async function saveOp36Round(
         data.girs ?? null,
         data.uds ?? null,
         data.birdies ?? null,
+        data.pars ?? null,
         data.three_putts ?? null,
+        data.four_putts ?? null,
+        data.double_bogey_plus ?? null,
         data.points,
         data.mastery,
         data.result,

@@ -179,7 +179,10 @@ export interface Op36Round {
   girs: number | null;
   uds: number | null;
   birdies: number | null;
+  pars: number | null;
   three_putts: number | null;
+  four_putts: number | null;
+  double_bogey_plus: number | null;
   points: number;
   mastery: boolean;
   result: 'advance' | 'demote' | 'stay' | 'graduate';
@@ -203,7 +206,10 @@ export interface SaveOp36RoundData {
   girs?: number | null;
   uds?: number | null;
   birdies?: number | null;
+  pars?: number | null;
   three_putts?: number | null;
+  four_putts?: number | null;
+  double_bogey_plus?: number | null;
   points: number;
   mastery: boolean;
   result: 'advance' | 'demote' | 'stay' | 'graduate';

@@ -25,14 +25,36 @@ export interface HoleInput {
   ud: boolean;
 }
 
-/** Calculate live display totals from hole inputs (client-safe, display only). */
+/**
+ * Points system:
+ *   Birdie (score ≤ 3)   : +2
+ *   Par   (score = 4)    : +1
+ *   GIR                  : +1
+ *   Up & Down            : +1
+ *   3-putt (putts = 3)   : −1
+ *   4-putt+ (putts ≥ 4)  : −3
+ *   Double bogey+ (≥ 6)  : −2
+ */
 export function calcTotals(holes: HoleInput[]) {
+  const played = holes.filter((h) => h.score > 0);
   const totalScore = holes.reduce((s, h) => s + h.score, 0);
   const totalPutts = holes.reduce((s, h) => s + h.putts, 0);
   const girs = holes.filter((h) => h.gir).length;
   const uds = holes.filter((h) => h.ud).length;
-  const birdies = holes.filter((h) => h.score > 0 && h.score < PAR_PER_HOLE).length;
-  const threePutts = holes.filter((h) => h.putts >= 3).length;
-  const points = girs + uds + birdies * 2 - threePutts;
-  return { totalScore, totalPutts, girs, uds, birdies, threePutts, points };
+  const birdies = played.filter((h) => h.score <= 3).length;
+  const pars = played.filter((h) => h.score === 4).length;
+  const threePutts = holes.filter((h) => h.putts === 3).length;
+  const fourPutts = holes.filter((h) => h.putts >= 4).length;
+  const doubleBogeyPlus = played.filter((h) => h.score >= 6).length;
+
+  const points =
+    birdies * 2 +
+    pars * 1 +
+    girs +
+    uds -
+    threePutts * 1 -
+    fourPutts * 3 -
+    doubleBogeyPlus * 2;
+
+  return { totalScore, totalPutts, girs, uds, birdies, pars, threePutts, fourPutts, doubleBogeyPlus, points };
 }

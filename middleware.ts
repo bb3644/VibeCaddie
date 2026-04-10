@@ -1,27 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * 双层 cookie 守卫：
- * 1. site_passcode — 网站访问凭证
- * 2. user_id — 选定的球员 profile
+ * Cookie guard: user_id — selected player profile
  */
 export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const passcode = req.cookies.get("site_passcode")?.value;
   const userId = req.cookies.get("user_id")?.value;
 
-  // /select-profile 只需 passcode，不需 user_id
-  const isSelectProfile = pathname === "/select-profile";
+  // /select-profile doesn't need user_id
+  if (pathname === "/select-profile") return NextResponse.next();
 
-  // 检查 passcode
-  const sitePasscode = process.env.SITE_PASSCODE ?? process.env.SITE_PASSWORD;
-  if (passcode !== sitePasscode) {
-    const loginUrl = new URL("/login", req.url);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // 有 passcode 但无 user_id → 去选 profile（除非已经在选择页）
-  if (!userId && !isSelectProfile) {
+  if (!userId) {
     const selectUrl = new URL("/select-profile", req.url);
     return NextResponse.redirect(selectUrl);
   }

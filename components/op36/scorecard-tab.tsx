@@ -162,13 +162,17 @@ export function ScorecardTab({ currentLevel, onRoundSaved }: ScorecardTabProps) 
       )}
 
       {/* Totals summary */}
-      <div className="rounded-xl border border-divider bg-white p-4 grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
+      <div className="rounded-xl border border-divider bg-white p-4 grid grid-cols-5 sm:grid-cols-10 gap-3 text-center">
         {[
           { label: "Score", value: totals.totalScore || "—" },
           { label: "Putts", value: totals.totalPutts || "—" },
           { label: "GIRs", value: totals.girs },
           { label: "U&Ds", value: totals.uds },
           { label: "Birdies", value: totals.birdies },
+          { label: "Pars", value: totals.pars },
+          { label: "3-putts", value: totals.threePutts },
+          { label: "4-putts", value: totals.fourPutts },
+          { label: "Dbl Bog+", value: totals.doubleBogeyPlus },
           { label: "Points", value: totals.points },
         ].map(({ label, value }) => (
           <div key={label}>
