@@ -23,6 +23,7 @@ export function ScorecardTab({ currentLevel, onRoundSaved }: ScorecardTabProps) 
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
+  const [showPointsDetail, setShowPointsDetail] = useState(false);
 
   const showFront = nines === "front" || nines === "both";
   const showBack = nines === "back" || nines === "both";
@@ -162,24 +163,107 @@ export function ScorecardTab({ currentLevel, onRoundSaved }: ScorecardTabProps) 
       )}
 
       {/* Totals summary */}
-      <div className="rounded-xl border border-divider bg-white p-4 grid grid-cols-5 sm:grid-cols-10 gap-3 text-center">
-        {[
-          { label: "Score", value: totals.totalScore || "—" },
-          { label: "Putts", value: totals.totalPutts || "—" },
-          { label: "GIRs", value: totals.girs },
-          { label: "U&Ds", value: totals.uds },
-          { label: "Birdies", value: totals.birdies },
-          { label: "Pars", value: totals.pars },
-          { label: "3-putts", value: totals.threePutts },
-          { label: "4-putts", value: totals.fourPutts },
-          { label: "Dbl Bog+", value: totals.doubleBogeyPlus },
-          { label: "Points", value: totals.points },
-        ].map(({ label, value }) => (
-          <div key={label}>
-            <div className="text-xs text-secondary">{label}</div>
-            <div className="text-lg font-semibold text-text">{value}</div>
-          </div>
-        ))}
+      <div className="rounded-xl border border-divider bg-white p-4 space-y-3">
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-3 text-center">
+          {[
+            { label: "Score", value: totals.totalScore || "—" },
+            { label: "Putts", value: totals.totalPutts || "—" },
+            { label: "GIRs", value: totals.girs },
+            { label: "U&Ds", value: totals.uds },
+            { label: "Birdies", value: totals.birdies },
+            { label: "Pars", value: totals.pars },
+            { label: "3-putts", value: totals.threePutts },
+            { label: "Dbl Bog+", value: totals.doubleBogeyPlus },
+          ].map(({ label, value }) => (
+            <div key={label}>
+              <div className="text-xs text-secondary">{label}</div>
+              <div className="text-lg font-semibold text-text">{value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Points row with toggle */}
+        <div className="border-t border-divider/60 pt-3">
+          <button
+            onClick={() => setShowPointsDetail((v) => !v)}
+            className="w-full flex items-center justify-between text-left"
+          >
+            <div>
+              <span className="text-xs text-secondary">Points</span>
+              <div className="text-lg font-semibold text-accent">{totals.points}</div>
+            </div>
+            <span className="text-xs text-secondary flex items-center gap-1">
+              {showPointsDetail ? "Hide details" : "How is this calculated?"}
+              <svg
+                className={`w-3.5 h-3.5 transition-transform ${showPointsDetail ? "rotate-180" : ""}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </button>
+
+          {showPointsDetail && (
+            <div className="mt-3 space-y-2 text-xs text-secondary">
+              <p className="font-medium text-text">Points breakdown:</p>
+              <div className="space-y-1">
+                {totals.birdies > 0 && (
+                  <div className="flex justify-between">
+                    <span>{totals.birdies} birdie{totals.birdies > 1 ? "s" : ""} × +2</span>
+                    <span className="text-accent font-medium">+{totals.birdies * 2}</span>
+                  </div>
+                )}
+                {totals.pars > 0 && (
+                  <div className="flex justify-between">
+                    <span>{totals.pars} par{totals.pars > 1 ? "s" : ""} × +1</span>
+                    <span className="text-accent font-medium">+{totals.pars}</span>
+                  </div>
+                )}
+                {totals.girs > 0 && (
+                  <div className="flex justify-between">
+                    <span>{totals.girs} GIR{totals.girs > 1 ? "s" : ""} × +1</span>
+                    <span className="text-accent font-medium">+{totals.girs}</span>
+                  </div>
+                )}
+                {totals.uds > 0 && (
+                  <div className="flex justify-between">
+                    <span>{totals.uds} up &amp; down{totals.uds > 1 ? "s" : ""} × +1</span>
+                    <span className="text-accent font-medium">+{totals.uds}</span>
+                  </div>
+                )}
+                {totals.threePutts > 0 && (
+                  <div className="flex justify-between">
+                    <span>{totals.threePutts} 3-putt{totals.threePutts > 1 ? "s" : ""} × −1</span>
+                    <span className="text-red-500 font-medium">−{totals.threePutts}</span>
+                  </div>
+                )}
+                {totals.fourPutts > 0 && (
+                  <div className="flex justify-between">
+                    <span>{totals.fourPutts} 4-putt{totals.fourPutts > 1 ? "s" : ""} × −3</span>
+                    <span className="text-red-500 font-medium">−{totals.fourPutts * 3}</span>
+                  </div>
+                )}
+                {totals.doubleBogeyPlus > 0 && (
+                  <div className="flex justify-between">
+                    <span>{totals.doubleBogeyPlus} double bogey+ × −2</span>
+                    <span className="text-red-500 font-medium">−{totals.doubleBogeyPlus * 2}</span>
+                  </div>
+                )}
+                {totals.birdies === 0 && totals.pars === 0 && totals.girs === 0 && totals.uds === 0 &&
+                  totals.threePutts === 0 && totals.fourPutts === 0 && totals.doubleBogeyPlus === 0 && (
+                  <p className="text-secondary italic">No scores entered yet.</p>
+                )}
+              </div>
+              <div className="flex justify-between border-t border-divider/60 pt-1 font-medium text-text">
+                <span>Total</span>
+                <span className={totals.points >= 0 ? "text-accent" : "text-red-500"}>{totals.points > 0 ? `+${totals.points}` : totals.points}</span>
+              </div>
+              <p className="text-[10px] text-secondary/70 pt-1 border-t border-divider/40">
+                Birdie ≤3 +2 · Par +1 · GIR +1 · U&amp;D +1 · 3-putt −1 · 4-putt+ −3 · Double bogey+ −2
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Result preview */}
