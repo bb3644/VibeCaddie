@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getRequiredSession } from "@/lib/auth/session";
 import { getPlayerNotesByCourseHole } from "@/lib/db/courses";
 
+export const dynamic = "force-dynamic";
+
 interface RouteContext {
   params: Promise<{ courseId: string; holeNumber: string }>;
 }

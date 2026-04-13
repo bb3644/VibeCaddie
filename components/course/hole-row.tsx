@@ -91,7 +91,7 @@ export function HoleRow({
   async function fetchPlayerNotes(): Promise<PlayerHoleNote[]> {
     setLoadingPlayerNotes(true);
     try {
-      const res = await fetch(`/api/courses/${courseId}/holes/${holeNumber}/player-notes`);
+      const res = await fetch(`/api/courses/${courseId}/holes/${holeNumber}/player-notes`, { cache: "no-store" });
       if (res.ok) {
         const notes = (await res.json()) as PlayerHoleNote[];
         setPlayerNotes(notes);
