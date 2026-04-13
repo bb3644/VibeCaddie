@@ -359,6 +359,31 @@ export async function deleteOfficialNote(courseId: string, holeNumber: number): 
 }
 
 /**
+ * 获取某课程某洞号的所有玩家备注（跨 tee，附带 is_mine 标记）
+ */
+export async function getPlayerNotesByCourseHole(
+  courseId: string,
+  holeNumber: number,
+  currentUserId: string
+): Promise<PlayerHoleNote[]> {
+  const result = await query<PlayerHoleNote & { is_mine: boolean }>(
+    `SELECT phn.*,
+            COALESCE(pp.name, phn.user_name, 'Anonymous') AS user_name,
+            (phn.user_id = $3) AS is_mine
+     FROM player_hole_notes phn
+     LEFT JOIN player_profiles pp ON pp.user_id = phn.user_id
+     WHERE phn.course_hole_id IN (
+       SELECT ch.id FROM course_holes ch
+       JOIN course_tees ct ON ct.id = ch.course_tee_id
+       WHERE ct.course_id = $1 AND ch.hole_number = $2
+     )
+     ORDER BY phn.created_at ASC`,
+    [courseId, holeNumber, currentUserId]
+  );
+  return result.rows;
+}
+
+/**
  * 获取某洞的所有玩家备注（附带 is_mine 标记）
  */
 export async function getPlayerNotes(

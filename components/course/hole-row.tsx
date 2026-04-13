@@ -47,6 +47,7 @@ export function HoleRow({
   const [loadingPlayerNotes, setLoadingPlayerNotes] = useState(false);
   const [playerDraft, setPlayerDraft] = useState("");
   const [savingPlayer, setSavingPlayer] = useState(false);
+  const [playerNoteError, setPlayerNoteError] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
 
@@ -81,13 +82,14 @@ export function HoleRow({
   }
 
   async function loadPlayerNotes() {
-    if (!holeId || playerNotes !== null) return;
+    if (playerNotes !== null) return;
     setLoadingPlayerNotes(true);
     try {
-      const res = await fetch(`/api/courses/holes/${holeId}/player-notes`);
+      const res = await fetch(`/api/courses/${courseId}/holes/${holeNumber}/player-notes`);
       if (res.ok) setPlayerNotes((await res.json()) as PlayerHoleNote[]);
+      else setPlayerNotes([]);
     } catch {
-      // silent
+      setPlayerNotes([]);
     } finally {
       setLoadingPlayerNotes(false);
     }
@@ -96,6 +98,7 @@ export function HoleRow({
   async function postPlayerNote() {
     if (!holeId || !playerDraft.trim()) return;
     setSavingPlayer(true);
+    setPlayerNoteError("");
     try {
       const res = await fetch(`/api/courses/holes/${holeId}/player-notes`, {
         method: "POST",
@@ -112,9 +115,11 @@ export function HoleRow({
             : [...prev, saved];
         });
         setPlayerDraft("");
+      } else {
+        setPlayerNoteError("Failed to save note. Please try again.");
       }
     } catch {
-      // silent
+      setPlayerNoteError("Network error. Please try again.");
     } finally {
       setSavingPlayer(false);
     }
@@ -376,25 +381,30 @@ export function HoleRow({
                 Save holes first to add player notes.
               </span>
             ) : (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={playerDraft}
-                  onChange={(e) => setPlayerDraft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") postPlayerNote();
-                  }}
-                  placeholder="Add your note…"
-                  className="flex-1 rounded-md border border-divider px-2.5 py-1.5 text-[0.8125rem] text-text placeholder:text-secondary outline-none focus:border-accent focus:ring-1 focus:ring-accent"
-                />
-                <button
-                  onClick={postPlayerNote}
-                  disabled={savingPlayer || !playerDraft.trim()}
-                  className="text-[0.8125rem] text-accent font-medium disabled:opacity-40 cursor-pointer"
-                >
-                  {savingPlayer ? "Saving…" : "Post note"}
-                </button>
-              </div>
+              <>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={playerDraft}
+                    onChange={(e) => setPlayerDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") postPlayerNote();
+                    }}
+                    placeholder="Add your note…"
+                    className="flex-1 rounded-md border border-divider px-2.5 py-1.5 text-[0.8125rem] text-text placeholder:text-secondary outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                  />
+                  <button
+                    onClick={postPlayerNote}
+                    disabled={savingPlayer || !playerDraft.trim()}
+                    className="text-[0.8125rem] text-accent font-medium disabled:opacity-40 cursor-pointer"
+                  >
+                    {savingPlayer ? "Saving…" : "Post note"}
+                  </button>
+                </div>
+                {playerNoteError && (
+                  <span className="text-[0.75rem] text-red-500">{playerNoteError}</span>
+                )}
+              </>
             )}
           </div>
         </div>
