@@ -5,7 +5,8 @@ import { updateLearningAfterRound } from './learning';
 import { getRoundById, getRoundHoles, getPlayerRounds, saveRecapText } from '@/lib/db/rounds';
 import { getBriefingForRound } from '@/lib/db/briefings';
 import { getPlayerHoleHistory } from '@/lib/db/players';
-import { getCourseHoles } from '@/lib/db/courses';
+import { getCourseHoles, getPlayerNotesByCourseHole } from '@/lib/db/courses';
+import { query } from '@/lib/db/client';
 import { getAllKnowledge } from './knowledge';
 import type { RoundHole, CourseHole, PlayerHoleHistory, BriefingJson } from '@/lib/db/types';
 
@@ -22,6 +23,12 @@ export async function generateRecap(
 
   // 2. Course hole info (par etc.)
   const courseHoles = await getCourseHoles(round.course_tee_id);
+
+  // 2b. Get courseId for cross-tee player notes
+  const teeRow = await query<{ course_id: string }>(
+    'SELECT course_id FROM course_tees WHERE id = $1', [round.course_tee_id]
+  );
+  const courseId = teeRow.rows[0]?.course_id;
 
   // 3. Pre-round briefing for plan vs actual
   const briefing = await getBriefingForRound(userId, round.course_tee_id, round.played_date);
@@ -59,6 +66,20 @@ export async function generateRecap(
   if (round.round_notes) prompt += `Player's notes about this round: "${round.round_notes}"\n`;
   prompt += '\n';
 
+  // Fetch player notes for all holes (cross-tee)
+  const playerNotesByHole: Record<number, string[]> = {};
+  if (courseId) {
+    const noteResults = await Promise.all(
+      roundHoles.map(h => getPlayerNotesByCourseHole(courseId, h.hole_number, userId))
+    );
+    for (let i = 0; i < roundHoles.length; i++) {
+      const notes = noteResults[i];
+      if (notes.length > 0) {
+        playerNotesByHole[roundHoles[i].hole_number] = notes.map(n => `${n.user_name}: "${n.note}"`);
+      }
+    }
+  }
+
   prompt += `## Per-Hole Results\n`;
   for (const hole of roundHoles) {
     const courseHole = courseHoles.find(ch => ch.hole_number === hole.hole_number);
@@ -79,7 +100,9 @@ export async function generateRecap(
     if (hole.water_count > 0) penalties.push(`${hole.water_count} water`);
     if (hole.penalty_count > 0) penalties.push(`${hole.penalty_count} penalty`);
     if (penalties.length > 0) prompt += `, Hazards: ${penalties.join(', ')}`;
-    if (hole.hole_notes) prompt += `\n  Notes: "${hole.hole_notes}"`;
+    if (hole.hole_notes) prompt += `\n  Round note: "${hole.hole_notes}"`;
+    const pNotes = playerNotesByHole[hole.hole_number];
+    if (pNotes && pNotes.length > 0) prompt += `\n  Player notes: ${pNotes.join(' | ')}`;
     prompt += '\n';
   }
 

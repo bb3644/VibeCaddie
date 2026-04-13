@@ -1,6 +1,6 @@
 import { computeBriefing, BriefingData, HoleInput, PlayerHistoryInput } from './strategy';
 import { callLLM, BRIEFING_SYSTEM_PROMPT } from './llm';
-import { getCourseHoles, getHoleHazards, getOfficialNotesForCourse, getPlayerNotes } from '@/lib/db/courses';
+import { getCourseHoles, getHoleHazards, getOfficialNotesForCourse, getPlayerNotesByCourseHole } from '@/lib/db/courses';
 import { getPlayerClubDistances, getPlayerHoleHistory } from '@/lib/db/players';
 import { getPlayerRounds, getRoundHoles } from '@/lib/db/rounds';
 import { createBriefing as saveBriefing } from '@/lib/db/briefings';
@@ -28,7 +28,7 @@ export async function generateBriefing(
     ...holes.map(async (h) => {
       const [hazards, playerNotes] = await Promise.all([
         getHoleHazards(h.id),
-        getPlayerNotes(h.id, userId),
+        getPlayerNotesByCourseHole(courseId, h.hole_number, userId),
       ]);
       return {
         hole: h,
