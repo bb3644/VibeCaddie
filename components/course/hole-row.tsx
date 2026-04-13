@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { OfficialHoleNote, PlayerHoleNote } from "@/lib/db/types";
 
 interface HoleRowProps {
@@ -41,6 +41,12 @@ export function HoleRow({
 
   const [showNotes, setShowNotes] = useState(!!(officialNote?.note));
   const [officialDraft, setOfficialDraft] = useState(officialNote?.note ?? "");
+
+  // If the panel is open on mount (because there's an official note), load player notes immediately
+  useEffect(() => {
+    if (showNotes) loadPlayerNotes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [savingOfficial, setSavingOfficial] = useState(false);
 
   const [playerNotes, setPlayerNotes] = useState<PlayerHoleNote[] | null>(null);
