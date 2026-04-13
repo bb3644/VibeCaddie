@@ -42,11 +42,15 @@ export function HoleRow({
   const [showNotes, setShowNotes] = useState(!!(officialNote?.note));
   const [officialDraft, setOfficialDraft] = useState(officialNote?.note ?? "");
 
-  // Always fetch player notes whenever the panel is open (on mount or re-render)
+  // When holeId becomes available (holes finish loading), silently pre-fetch notes
+  // and auto-open the panel if any exist so user doesn't need to click.
   useEffect(() => {
-    if (showNotes) fetchPlayerNotes();
+    if (!holeId) return;
+    fetchPlayerNotes().then((notes) => {
+      if (notes.length > 0) setShowNotes(true);
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [holeId]);
   const [savingOfficial, setSavingOfficial] = useState(false);
 
   const [playerNotes, setPlayerNotes] = useState<PlayerHoleNote[] | null>(null);
