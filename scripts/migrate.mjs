@@ -34,4 +34,8 @@ const courseTeeRatingsSql = readFileSync(join(__dirname, '../lib/db/migrations/a
 await pool.query(courseTeeRatingsSql);
 console.log('Migration done: course_rating and slope_rating added to course_tees');
 
+const playerHoleNotesSql = readFileSync(join(__dirname, '../lib/db/migrations/add_player_hole_notes.sql'), 'utf8');
+await pool.query(playerHoleNotesSql);
+console.log('Migration done: player_hole_notes table created');
+
 await pool.end();

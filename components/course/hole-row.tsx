@@ -48,6 +48,7 @@ export function HoleRow({
   const [playerDraft, setPlayerDraft] = useState("");
   const [savingPlayer, setSavingPlayer] = useState(false);
   const [playerNoteError, setPlayerNoteError] = useState("");
+  const [playerNoteSaved, setPlayerNoteSaved] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
 
@@ -81,8 +82,7 @@ export function HoleRow({
     }
   }
 
-  async function loadPlayerNotes() {
-    if (playerNotes !== null) return;
+  async function fetchPlayerNotes() {
     setLoadingPlayerNotes(true);
     try {
       const res = await fetch(`/api/courses/${courseId}/holes/${holeNumber}/player-notes`);
@@ -95,10 +95,16 @@ export function HoleRow({
     }
   }
 
+  async function loadPlayerNotes() {
+    if (playerNotes !== null) return;
+    await fetchPlayerNotes();
+  }
+
   async function postPlayerNote() {
     if (!holeId || !playerDraft.trim()) return;
     setSavingPlayer(true);
     setPlayerNoteError("");
+    setPlayerNoteSaved(false);
     try {
       const res = await fetch(`/api/courses/holes/${holeId}/player-notes`, {
         method: "POST",
@@ -106,17 +112,14 @@ export function HoleRow({
         body: JSON.stringify({ note: playerDraft.trim() }),
       });
       if (res.ok) {
-        const saved = (await res.json()) as PlayerHoleNote;
-        setPlayerNotes((prev) => {
-          if (!prev) return [saved];
-          const idx = prev.findIndex((n) => n.is_mine);
-          return idx >= 0
-            ? prev.map((n, i) => (i === idx ? saved : n))
-            : [...prev, saved];
-        });
         setPlayerDraft("");
+        // Re-fetch from DB to confirm persistence
+        await fetchPlayerNotes();
+        setPlayerNoteSaved(true);
+        setTimeout(() => setPlayerNoteSaved(false), 3000);
       } else {
-        setPlayerNoteError("Failed to save note. Please try again.");
+        const data = await res.json().catch(() => ({}));
+        setPlayerNoteError(`Failed to save: ${(data as { error?: string }).error ?? res.status}`);
       }
     } catch {
       setPlayerNoteError("Network error. Please try again.");
@@ -403,6 +406,9 @@ export function HoleRow({
                 </div>
                 {playerNoteError && (
                   <span className="text-[0.75rem] text-red-500">{playerNoteError}</span>
+                )}
+                {playerNoteSaved && (
+                  <span className="text-[0.75rem] text-accent">Saved ✓</span>
                 )}
               </>
             )}
