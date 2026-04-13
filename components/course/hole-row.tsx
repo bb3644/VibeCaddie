@@ -42,9 +42,9 @@ export function HoleRow({
   const [showNotes, setShowNotes] = useState(!!(officialNote?.note));
   const [officialDraft, setOfficialDraft] = useState(officialNote?.note ?? "");
 
-  // If the panel is open on mount (because there's an official note), load player notes immediately
+  // Always fetch player notes whenever the panel is open (on mount or re-render)
   useEffect(() => {
-    if (showNotes) loadPlayerNotes();
+    if (showNotes) fetchPlayerNotes();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const [savingOfficial, setSavingOfficial] = useState(false);
@@ -109,11 +109,6 @@ export function HoleRow({
     } finally {
       setLoadingPlayerNotes(false);
     }
-  }
-
-  async function loadPlayerNotes() {
-    if (playerNotes !== null) return;
-    await fetchPlayerNotes();
   }
 
   async function postPlayerNote() {
@@ -187,7 +182,7 @@ export function HoleRow({
   function handleToggleNotes() {
     const next = !showNotes;
     setShowNotes(next);
-    if (next && playerNotes === null) loadPlayerNotes();
+    if (next) fetchPlayerNotes();
   }
 
   return (
