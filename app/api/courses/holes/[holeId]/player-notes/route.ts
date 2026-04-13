@@ -14,10 +14,12 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     const notes = await getPlayerNotes(holeId, session.user.id);
     return NextResponse.json(notes);
   } catch (error) {
-    if ((error as Error).message === "Unauthorized") {
+    const msg = (error as Error).message ?? "Unknown error";
+    if (msg === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("[player-notes GET]", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
 
@@ -38,9 +40,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
     });
     return NextResponse.json({ ...saved, is_mine: true }, { status: 201 });
   } catch (error) {
-    if ((error as Error).message === "Unauthorized") {
+    const msg = (error as Error).message ?? "Unknown error";
+    if (msg === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("[player-notes POST]", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

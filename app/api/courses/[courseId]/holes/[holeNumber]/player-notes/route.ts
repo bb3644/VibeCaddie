@@ -20,9 +20,11 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     const notes = await getPlayerNotesByCourseHole(courseId, num, session.user.id);
     return NextResponse.json(notes);
   } catch (error) {
-    if ((error as Error).message === "Unauthorized") {
+    const msg = (error as Error).message ?? "Unknown error";
+    if (msg === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("[cross-tee player-notes GET]", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

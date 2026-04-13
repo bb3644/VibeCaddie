@@ -82,14 +82,24 @@ export function HoleRow({
     }
   }
 
-  async function fetchPlayerNotes() {
+  async function fetchPlayerNotes(): Promise<PlayerHoleNote[]> {
     setLoadingPlayerNotes(true);
     try {
       const res = await fetch(`/api/courses/${courseId}/holes/${holeNumber}/player-notes`);
-      if (res.ok) setPlayerNotes((await res.json()) as PlayerHoleNote[]);
-      else setPlayerNotes([]);
+      if (res.ok) {
+        const notes = (await res.json()) as PlayerHoleNote[];
+        setPlayerNotes(notes);
+        return notes;
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setPlayerNoteError(`Load failed: ${(data as { error?: string }).error ?? res.status}`);
+        setPlayerNotes([]);
+        return [];
+      }
     } catch {
+      setPlayerNoteError("Network error loading notes.");
       setPlayerNotes([]);
+      return [];
     } finally {
       setLoadingPlayerNotes(false);
     }
@@ -113,10 +123,12 @@ export function HoleRow({
       });
       if (res.ok) {
         setPlayerDraft("");
-        // Re-fetch from DB to confirm persistence
-        await fetchPlayerNotes();
-        setPlayerNoteSaved(true);
-        setTimeout(() => setPlayerNoteSaved(false), 3000);
+        const confirmed = await fetchPlayerNotes();
+        if (confirmed.some((n) => n.is_mine)) {
+          setPlayerNoteSaved(true);
+          setTimeout(() => setPlayerNoteSaved(false), 3000);
+        }
+        // playerNoteError already set by fetchPlayerNotes if load failed
       } else {
         const data = await res.json().catch(() => ({}));
         setPlayerNoteError(`Failed to save: ${(data as { error?: string }).error ?? res.status}`);
