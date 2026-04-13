@@ -1,0 +1,36 @@
+{
+  "source": "World Handicap System",
+  "author": "R&A / USGA",
+  "chunks": [
+    {
+      "id": "hcp_001",
+      "topic": "playing_handicap",
+      "principle": "Playing Handicap = round(Handicap Index × (Slope Rating ÷ 113) + (Course Rating − Par)). This converts your portable Handicap Index into the actual strokes you receive at a specific course and tee.",
+      "application": "Always calculate Playing Handicap before the round — it tells you exactly how many strokes you get on this course today. A higher Slope Rating means the course penalises higher-handicap players more, so your Playing Handicap will be larger than your Index."
+    },
+    {
+      "id": "hcp_002",
+      "topic": "playing_handicap",
+      "principle": "Slope Rating (SR) measures how much harder a course is for a bogey golfer compared to a scratch golfer. SR 113 is neutral. Every point above 113 amplifies your Index; every point below reduces it.",
+      "application": "On a high-SR course (>130), a 20-handicapper receives significantly more strokes than their Index — the difficulty gap between scratch and bogey is wide. Play conservatively: the course demands respect regardless of the distance advantage from a shorter tee."
+    },
+    {
+      "id": "hcp_003",
+      "topic": "playing_handicap",
+      "principle": "Course Rating (CR) reflects the expected score for a scratch golfer. A CR below Par means the course plays easier than its par suggests; a CR above Par means it plays harder.",
+      "application": "If CR < Par, the course is 'giving back' strokes to scratch golfers — distance and layout are relatively forgiving. If your Playing Handicap equals your Index despite a lower CR, it means the Slope Rating is compensating: the course is harder for mid/high-handicappers than it looks on paper."
+    },
+    {
+      "id": "hcp_004",
+      "topic": "stroke_allocation",
+      "principle": "Stroke Index (SI) determines which holes you receive your handicap strokes on. With N Playing Handicap strokes, you get an extra shot on the N holes with the lowest SI. With >18 strokes, you receive 2 shots on holes where SI ≤ (N − 18).",
+      "application": "Know your SI-allocated holes before you tee off. On a hole where you receive a stroke, your net target is bogey (one over par), not par. This shifts your decision-making: lay up to a safe distance rather than risking a double to chase a gross par."
+    },
+    {
+      "id": "hcp_005",
+      "topic": "playing_handicap",
+      "principle": "Accepting a three-putt on a difficult green when you hold a handicap stroke is strategically sound. Your net score is still a bogey — equivalent to a par for scratch. Chasing an aggressive two-putt and carding four putts wastes the stroke allocation.",
+      "application": "On handicap-stroke holes with severe or complex greens, lag-putt aggressively to a safe zone and accept the three-putt. Never sacrifice the stroke allocation by going for a hero putt and leaving yourself with a tricky four-footer coming back."
+    }
+  ]
+}

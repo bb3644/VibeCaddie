@@ -1,7 +1,7 @@
 import { computeBriefing, BriefingData, HoleInput, PlayerHistoryInput } from './strategy';
 import { callLLM, BRIEFING_SYSTEM_PROMPT } from './llm';
 import { getCourseHoles, getHoleHazards, getOfficialNotesForCourse, getPlayerNotesByCourseHole } from '@/lib/db/courses';
-import { getPlayerClubDistances, getPlayerHoleHistory } from '@/lib/db/players';
+import { getPlayerClubDistances, getPlayerHoleHistory, getPlayerProfile } from '@/lib/db/players';
 import { getPlayerRounds, getRoundHoles } from '@/lib/db/rounds';
 import { createBriefing as saveBriefing } from '@/lib/db/briefings';
 import { BriefingJson, OfficialHoleNote, PlayerHoleNote } from '@/lib/db/types';
@@ -15,12 +15,16 @@ export async function generateBriefing(
   courseTeeId: string,
   playDate: string,
 ): Promise<{ id: string; briefingJson: BriefingJson }> {
-  // 1. Get holes + courseId
+  // 1. Get holes + courseId + tee ratings + player profile (in parallel)
   const holes = await getCourseHoles(courseTeeId);
-  const teeRow = await query<{ course_id: string }>(
-    'SELECT course_id FROM course_tees WHERE id = $1', [courseTeeId]
-  );
+  const [teeRow, playerProfile] = await Promise.all([
+    query<{ course_id: string; course_rating: number | null; slope_rating: number | null; par_total: number; tee_name: string }>(
+      'SELECT course_id, course_rating, slope_rating, par_total, tee_name FROM course_tees WHERE id = $1', [courseTeeId]
+    ),
+    getPlayerProfile(userId),
+  ]);
   const courseId = teeRow.rows[0]?.course_id;
+  const teeInfo = teeRow.rows[0] ?? null;
 
   // 2. Fetch per-hole hazards, official notes, and player notes in parallel
   const [officialNotes, ...holesWithExtras] = await Promise.all([
@@ -77,7 +81,15 @@ export async function generateBriefing(
   // 6. Strategy engine
   const briefingData: BriefingData = computeBriefing(holesWithHazards, historyInputs, playerDistance);
 
-  // 7. Assemble prompt with all context
+  // 7. Compute Playing Handicap
+  const playingHandicap = computePlayingHandicap(
+    playerProfile?.handicap_index ?? null,
+    teeInfo?.course_rating ?? null,
+    teeInfo?.slope_rating ?? null,
+    teeInfo?.par_total ?? null,
+  );
+
+  // 8. Assemble prompt with all context
   const userPrompt = assembleBriefingPrompt(
     briefingData,
     holes,
@@ -85,12 +97,15 @@ export async function generateBriefing(
     officialNotes,
     historyInputs,
     prevRoundDetails,
+    playerProfile?.handicap_index ?? null,
+    teeInfo,
+    playingHandicap,
   );
 
-  // 8. Call LLM
+  // 9. Call LLM
   const llmResponse = await callLLM(BRIEFING_SYSTEM_PROMPT, userPrompt);
 
-  // 8. Build briefing JSON
+  // 10. Build briefing JSON
   const briefingJson: BriefingJson = {
     control_holes: briefingData.control_holes,
     driver_ok_holes: briefingData.driver_ok_holes,
@@ -104,8 +119,7 @@ export async function generateBriefing(
     })),
   };
 
-  // 9. Save
-
+  // 11. Save
   const saved = await saveBriefing(userId, {
     course_tee_id: courseTeeId,
     play_date: playDate,
@@ -123,6 +137,23 @@ type PrevRoundDetail = {
   holes: Awaited<ReturnType<typeof getRoundHoles>>;
 };
 
+type TeeInfo = {
+  tee_name: string;
+  course_rating: number | null;
+  slope_rating: number | null;
+  par_total: number;
+} | null;
+
+function computePlayingHandicap(
+  handicapIndex: number | null,
+  courseRating: number | null,
+  slopeRating: number | null,
+  par: number | null,
+): number | null {
+  if (handicapIndex == null || courseRating == null || slopeRating == null || par == null) return null;
+  return Math.round(handicapIndex * (slopeRating / 113) + (courseRating - par));
+}
+
 function assembleBriefingPrompt(
   data: BriefingData,
   holes: Awaited<ReturnType<typeof getCourseHoles>>,
@@ -130,8 +161,35 @@ function assembleBriefingPrompt(
   officialNotes: Record<number, OfficialHoleNote>,
   histories: PlayerHistoryInput[],
   prevRoundDetails: PrevRoundDetail[],
+  handicapIndex: number | null,
+  teeInfo: TeeInfo,
+  playingHandicap: number | null,
 ): string {
   let prompt = `Generate a pre-round briefing for an ${holes.length}-hole round.\n\n`;
+
+  // Playing Handicap section
+  if (handicapIndex != null && teeInfo) {
+    prompt += `## Player Handicap & Course Difficulty\n`;
+    prompt += `Handicap Index: ${handicapIndex}\n`;
+    if (teeInfo.course_rating != null && teeInfo.slope_rating != null) {
+      prompt += `Tee: ${teeInfo.tee_name} — CR ${teeInfo.course_rating} / SL ${teeInfo.slope_rating} / Par ${teeInfo.par_total}\n`;
+      if (playingHandicap != null) {
+        prompt += `Playing Handicap (strokes received today): ${playingHandicap}\n`;
+        prompt += `Formula: round(${handicapIndex} × (${teeInfo.slope_rating} ÷ 113) + (${teeInfo.course_rating} − ${teeInfo.par_total})) = ${playingHandicap}\n`;
+        const extra = playingHandicap - handicapIndex;
+        if (extra > 0) {
+          prompt += `The high Slope Rating adds ${extra} extra stroke(s) beyond the bare Index — this course is significantly harder for mid/high-handicappers than scratch golfers.\n`;
+        } else if (extra < 0) {
+          prompt += `The low Slope Rating reduces strokes by ${Math.abs(extra)} vs bare Index — this course is relatively fair across all handicap levels.\n`;
+        }
+        prompt += `On the ${playingHandicap} hardest holes (by Stroke Index), the player receives an extra shot — net target on those holes is bogey, not par.\n`;
+        if (playingHandicap > 18) {
+          prompt += `With ${playingHandicap} strokes, the player receives 2 shots on the ${playingHandicap - 18} easiest holes — net target on those holes is double-bogey (gross), which equals net par.\n`;
+        }
+      }
+    }
+    prompt += `\n`;
+  }
 
   prompt += `## Strategy Summary\n`;
   prompt += `Driver OK holes: ${data.driver_ok_holes.join(', ') || 'none'}\n`;
