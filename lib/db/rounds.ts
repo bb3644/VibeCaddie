@@ -147,6 +147,20 @@ export async function updateRoundTotalScore(
 }
 
 /**
+ * 保存轮次备注
+ */
+export async function saveRoundNotes(
+  userId: string,
+  roundId: string,
+  roundNotes: string,
+): Promise<void> {
+  await query(
+    'UPDATE rounds SET round_notes = $1 WHERE id = $2 AND user_id = $3',
+    [roundNotes, roundId, userId],
+  );
+}
+
+/**
  * 保存 recap 文本到轮次
  */
 export async function saveRecapText(

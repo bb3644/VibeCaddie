@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserId } from "@/lib/auth/session";
-import { getRoundById, getRoundHoles, updateRoundTotalScore, saveRecapText, deleteRound } from "@/lib/db/rounds";
+import { getRoundById, getRoundHoles, updateRoundTotalScore, saveRecapText, saveRoundNotes, deleteRound } from "@/lib/db/rounds";
 import { getCourseHoles } from "@/lib/db/courses";
 import { query } from "@/lib/db/client";
 
@@ -73,9 +73,10 @@ export async function PUT(
     const userId = await getUserId();
     const { roundId } = await context.params;
     const body = await request.json();
-    const { total_score, recap_text } = body as {
+    const { total_score, recap_text, round_notes } = body as {
       total_score?: number;
       recap_text?: string;
+      round_notes?: string;
     };
 
     if (typeof total_score === "number") {
@@ -86,9 +87,13 @@ export async function PUT(
       await saveRecapText(userId, roundId, recap_text);
     }
 
-    if (total_score === undefined && recap_text === undefined) {
+    if (typeof round_notes === "string") {
+      await saveRoundNotes(userId, roundId, round_notes);
+    }
+
+    if (total_score === undefined && recap_text === undefined && round_notes === undefined) {
       return NextResponse.json(
-        { error: "total_score or recap_text is required" },
+        { error: "total_score, recap_text, or round_notes is required" },
         { status: 400 }
       );
     }

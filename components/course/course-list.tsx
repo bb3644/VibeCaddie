@@ -21,7 +21,7 @@ export function CourseList({ courses, onDelete }: CourseListProps) {
 
   const handleDelete = async (e: React.MouseEvent, course: CourseWithTeeCount) => {
     e.stopPropagation();
-    if (!confirm(`删除「${course.name}」及其所有 tee 和球洞数据？此操作不可撤销。`)) return;
+    if (!confirm(`Delete "${course.name}" and all its tees and hole data? This cannot be undone.`)) return;
 
     setDeletingId(course.id);
     try {
@@ -77,7 +77,7 @@ export function CourseList({ courses, onDelete }: CourseListProps) {
                 onClick={(e) => handleDelete(e, course)}
                 disabled={deletingId === course.id}
                 className="text-secondary hover:text-red-500 transition-colors cursor-pointer p-1"
-                title="删除球场"
+                title="Delete course"
               >
                 {deletingId === course.id ? (
                   <span className="text-[0.75rem]">...</span>

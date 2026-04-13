@@ -117,6 +117,7 @@ export interface Round {
   played_date: string;
   total_score: number | null;
   recap_text: string | null;
+  round_notes: string | null;
   holes_played: number;
   created_at: string;
 }

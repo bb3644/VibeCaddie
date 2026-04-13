@@ -56,6 +56,7 @@ export async function generateRecap(
   prompt += `Fairways hit: ${fwCount}/${roundHoles.length}\n`;
   prompt += `Greens in regulation: ${girCount}/${roundHoles.length}\n`;
   if (penCount > 0) prompt += `OB/penalties: ${penCount}\n`;
+  if (round.round_notes) prompt += `Player's notes about this round: "${round.round_notes}"\n`;
   prompt += '\n';
 
   prompt += `## Per-Hole Results\n`;

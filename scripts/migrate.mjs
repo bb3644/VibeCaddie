@@ -26,4 +26,12 @@ const op36FeedbackSql = readFileSync(join(__dirname, '../lib/db/migrations/add_o
 await pool.query(op36FeedbackSql);
 console.log('Migration done: feedback column added to op36_rounds');
 
+const roundNotesSql = readFileSync(join(__dirname, '../lib/db/migrations/add_round_notes.sql'), 'utf8');
+await pool.query(roundNotesSql);
+console.log('Migration done: round_notes column added to rounds');
+
+const courseTeeRatingsSql = readFileSync(join(__dirname, '../lib/db/migrations/add_course_tee_ratings.sql'), 'utf8');
+await pool.query(courseTeeRatingsSql);
+console.log('Migration done: course_rating and slope_rating added to course_tees');
+
 await pool.end();

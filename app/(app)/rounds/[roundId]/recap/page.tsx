@@ -4,13 +4,15 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { RecapDisplay } from "@/components/recap/recap-display";
+import { RoundSummary } from "@/components/round/round-summary";
 import { Button } from "@/components/ui/button";
-import type { Round, CourseHole } from "@/lib/db/types";
+import type { Round, CourseHole, RoundHole } from "@/lib/db/types";
 
 interface RoundDetail extends Round {
   course_name: string | null;
   tee_name: string | null;
   course_holes: CourseHole[];
+  holes: RoundHole[];
 }
 
 function RecapContent() {
@@ -25,7 +27,11 @@ function RecapContent() {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
 
-  // 编辑模式
+  // Round notes
+  const [roundNotes, setRoundNotes] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
+
+  // Edit mode for recap
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState("");
   const [saving, setSaving] = useState(false);
@@ -39,6 +45,9 @@ function RecapContent() {
           setRound(data);
           if (data.recap_text) {
             setRecapText(data.recap_text);
+          }
+          if (data.round_notes) {
+            setRoundNotes(data.round_notes);
           }
         } else if (res.status === 404) {
           setError("Round not found.");
@@ -54,11 +63,21 @@ function RecapContent() {
     loadRound();
   }, [roundId]);
 
-  // 生成回顾
   const handleGenerate = useCallback(async () => {
     setGenerating(true);
     setError("");
     try {
+      // Save notes first if non-empty
+      if (roundNotes.trim()) {
+        setSavingNotes(true);
+        await fetch(`/api/rounds/${roundId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ round_notes: roundNotes.trim() }),
+        });
+        setSavingNotes(false);
+      }
+
       const res = await fetch("/api/recap", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,8 +97,9 @@ function RecapContent() {
       setError("Something went wrong while generating the recap.");
     } finally {
       setGenerating(false);
+      setSavingNotes(false);
     }
-  }, [roundId]);
+  }, [roundId, roundNotes]);
 
   // URL 带 ?regenerate=1 时自动触发重新生成
   const autoRegenRef = useRef(false);
@@ -90,7 +110,6 @@ function RecapContent() {
     }
   }, [shouldRegenerate, loading, round, handleGenerate]);
 
-  // 保存编辑后的 recap
   const handleSaveEdit = useCallback(async () => {
     setSaving(true);
     try {
@@ -138,13 +157,13 @@ function RecapContent() {
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
         <p className="text-secondary text-[0.9375rem]">
-          Generating your recap...
+          {savingNotes ? "Saving notes..." : "Generating your analysis..."}
         </p>
       </div>
     );
   }
 
-  // 已有 recap — 展示 / 编辑
+  // Already has recap — show / edit
   if (recapText) {
     return (
       <div className="flex flex-col gap-4">
@@ -188,10 +207,7 @@ function RecapContent() {
               >
                 Edit Recap
               </Button>
-              <Button
-                variant="ghost"
-                onClick={handleGenerate}
-              >
+              <Button variant="ghost" onClick={handleGenerate}>
                 Regenerate
               </Button>
             </div>
@@ -205,7 +221,7 @@ function RecapContent() {
     );
   }
 
-  // 尚未生成
+  // Not yet generated — show scorecard + notes + generate button
   const dateStr = new Date(round.played_date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -221,7 +237,7 @@ function RecapContent() {
           </span>
         </Link>
         <h1 className="text-[1.875rem] font-semibold text-text mt-2">
-          Post-Round Recap
+          Post-Round Analysis
         </h1>
         <p className="text-[0.9375rem] text-secondary mt-1">
           {round.course_name ?? "Unknown Course"} &mdash; {round.tee_name ?? ""}{" "}
@@ -229,20 +245,46 @@ function RecapContent() {
         </p>
       </div>
 
-      <div className="flex flex-col items-center justify-center py-12 gap-4">
-        <p className="text-secondary text-[0.9375rem] text-center max-w-md">
-          Ready to review your round? We&apos;ll analyze your results, compare
-          them with your pre-round plan, and give you personalized insights.
+      {/* Scorecard */}
+      {round.holes && round.holes.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <h2 className="text-[1rem] font-semibold text-text">Scorecard</h2>
+          <RoundSummary
+            holes={round.holes}
+            courseHoles={round.course_holes ?? []}
+          />
+        </div>
+      )}
+
+      {/* Round notes */}
+      <div className="flex flex-col gap-2">
+        <label
+          htmlFor="round-notes"
+          className="text-[1rem] font-semibold text-text"
+        >
+          Round Notes
+        </label>
+        <p className="text-[0.8125rem] text-secondary">
+          Anything on your mind? Conditions, how you felt, specific struggles or
+          moments — your caddie will factor this into the analysis.
         </p>
-
-        {error && (
-          <p className="text-red-600 text-[0.875rem] text-center">{error}</p>
-        )}
-
-        <Button onClick={handleGenerate} className="mt-2">
-          Generate Recap
-        </Button>
+        <textarea
+          id="round-notes"
+          value={roundNotes}
+          onChange={(e) => setRoundNotes(e.target.value)}
+          placeholder="e.g. Wind was brutal on the back nine. Lost focus after hole 12. Putter felt great today..."
+          rows={4}
+          className="w-full rounded-lg border border-divider p-3 text-[0.9375rem] text-text leading-relaxed placeholder:text-secondary/50 focus:border-accent focus:ring-1 focus:ring-accent outline-none resize-y"
+        />
       </div>
+
+      {error && (
+        <p className="text-red-600 text-[0.875rem]">{error}</p>
+      )}
+
+      <Button onClick={handleGenerate} className="w-full">
+        Generate Analysis
+      </Button>
     </div>
   );
 }

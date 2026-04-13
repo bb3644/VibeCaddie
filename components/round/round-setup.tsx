@@ -8,11 +8,13 @@ import type { Course, CourseTee } from "@/lib/db/types";
 
 /** tee 颜色对应的圆点色 */
 const COLOR_MAP: Record<string, string> = {
-  White: "bg-gray-200",
+  White: "bg-white border border-gray-400",
+  Yellow: "bg-yellow-400",
   Blue: "bg-blue-500",
   Red: "bg-red-500",
-  Gold: "bg-yellow-400",
+  Gold: "bg-amber-500",
   Black: "bg-gray-800",
+  Orange: "bg-orange-500",
 };
 
 function todayString(): string {

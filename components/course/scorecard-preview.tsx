@@ -334,7 +334,7 @@ export function ScorecardPreview({
       }
 
       onSaved(courseId);
-      router.push(`/courses/${courseId}`);
+      router.push("/courses");
     } catch (err) {
       setError((err as Error).message);
       setSaving(false);
