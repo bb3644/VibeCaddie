@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { OfficialHoleNote, PlayerHoleNote } from "@/lib/db/types";
 
 interface HoleRowProps {
@@ -12,6 +12,7 @@ interface HoleRowProps {
   holeId: string | null;
   courseId: string;
   officialNote: OfficialHoleNote | null;
+  playerNotes: PlayerHoleNote[];
   onChange: (data: {
     par: number;
     yardage: number;
@@ -19,6 +20,7 @@ interface HoleRowProps {
     holeNote: string;
   }) => void;
   onOfficialNoteSave: (note: OfficialHoleNote | null) => void;
+  onPlayerNotesChange: (notes: PlayerHoleNote[]) => void;
 }
 
 const PAR_OPTIONS = [3, 4, 5];
@@ -33,28 +35,18 @@ export function HoleRow({
   holeId,
   courseId,
   officialNote,
+  playerNotes,
   onChange,
   onOfficialNoteSave,
+  onPlayerNotesChange,
 }: HoleRowProps) {
   const [editingNote, setEditingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState(holeNote);
 
-  const [showNotes, setShowNotes] = useState(!!(officialNote?.note));
+  const [showNotes, setShowNotes] = useState(!!(officialNote?.note) || playerNotes.length > 0);
   const [officialDraft, setOfficialDraft] = useState(officialNote?.note ?? "");
 
-  // When holeId becomes available (holes finish loading), silently pre-fetch notes
-  // and auto-open the panel if any exist so user doesn't need to click.
-  useEffect(() => {
-    if (!holeId) return;
-    fetchPlayerNotes().then((notes) => {
-      if (notes.length > 0) setShowNotes(true);
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [holeId]);
   const [savingOfficial, setSavingOfficial] = useState(false);
-
-  const [playerNotes, setPlayerNotes] = useState<PlayerHoleNote[] | null>(null);
-  const [loadingPlayerNotes, setLoadingPlayerNotes] = useState(false);
   const [playerDraft, setPlayerDraft] = useState("");
   const [savingPlayer, setSavingPlayer] = useState(false);
   const [playerNoteError, setPlayerNoteError] = useState("");
@@ -92,29 +84,6 @@ export function HoleRow({
     }
   }
 
-  async function fetchPlayerNotes(): Promise<PlayerHoleNote[]> {
-    setLoadingPlayerNotes(true);
-    try {
-      const res = await fetch(`/api/courses/${courseId}/holes/${holeNumber}/player-notes`, { cache: "no-store" });
-      if (res.ok) {
-        const notes = (await res.json()) as PlayerHoleNote[];
-        setPlayerNotes(notes);
-        return notes;
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setPlayerNoteError(`Load failed: ${(data as { error?: string }).error ?? res.status}`);
-        setPlayerNotes([]);
-        return [];
-      }
-    } catch {
-      setPlayerNoteError("Network error loading notes.");
-      setPlayerNotes([]);
-      return [];
-    } finally {
-      setLoadingPlayerNotes(false);
-    }
-  }
-
   async function postPlayerNote() {
     if (!holeId || !playerDraft.trim()) return;
     setSavingPlayer(true);
@@ -127,13 +96,15 @@ export function HoleRow({
         body: JSON.stringify({ note: playerDraft.trim() }),
       });
       if (res.ok) {
+        const saved = (await res.json()) as PlayerHoleNote;
         setPlayerDraft("");
-        const confirmed = await fetchPlayerNotes();
-        if (confirmed.some((n) => n.is_mine)) {
-          setPlayerNoteSaved(true);
-          setTimeout(() => setPlayerNoteSaved(false), 3000);
-        }
-        // playerNoteError already set by fetchPlayerNotes if load failed
+        // Upsert: replace existing note from same user, or append
+        const updated = playerNotes.some((n) => n.is_mine)
+          ? playerNotes.map((n) => (n.is_mine ? saved : n))
+          : [...playerNotes, saved];
+        onPlayerNotesChange(updated);
+        setPlayerNoteSaved(true);
+        setTimeout(() => setPlayerNoteSaved(false), 3000);
       } else {
         const data = await res.json().catch(() => ({}));
         setPlayerNoteError(`Failed to save: ${(data as { error?: string }).error ?? res.status}`);
@@ -156,9 +127,7 @@ export function HoleRow({
       });
       if (res.ok) {
         const saved = (await res.json()) as PlayerHoleNote;
-        setPlayerNotes((prev) =>
-          prev ? prev.map((n) => (n.id === noteId ? saved : n)) : [saved]
-        );
+        onPlayerNotesChange(playerNotes.map((n) => (n.id === noteId ? saved : n)));
         setEditingNoteId(null);
       }
     } catch {
@@ -176,17 +145,11 @@ export function HoleRow({
         { method: "DELETE" }
       );
       if (res.ok || res.status === 204) {
-        setPlayerNotes((prev) => prev ? prev.filter((n) => n.id !== noteId) : []);
+        onPlayerNotesChange(playerNotes.filter((n) => n.id !== noteId));
       }
     } catch {
       // silent
     }
-  }
-
-  function handleToggleNotes() {
-    const next = !showNotes;
-    setShowNotes(next);
-    if (next) fetchPlayerNotes();
   }
 
   return (
@@ -262,10 +225,10 @@ export function HoleRow({
 
         {/* Notes toggle */}
         <button
-          onClick={handleToggleNotes}
+          onClick={() => setShowNotes((prev) => !prev)}
           className="ml-auto text-[0.75rem] text-secondary hover:text-text cursor-pointer"
         >
-          {showNotes ? "Hide notes ▲" : "Notes ▼"}
+          {showNotes ? "Hide notes ▲" : `Notes${playerNotes.length > 0 ? ` (${playerNotes.length})` : ""} ▼`}
         </button>
       </div>
 
@@ -337,10 +300,7 @@ export function HoleRow({
             <span className="text-[0.75rem] font-medium text-secondary uppercase tracking-wide">
               Player notes
             </span>
-            {loadingPlayerNotes && (
-              <span className="text-[0.75rem] text-secondary">Loading…</span>
-            )}
-            {playerNotes && playerNotes.length > 0 && (
+            {playerNotes.length > 0 && (
               <div className="flex flex-col gap-1.5">
                 {playerNotes.map((n) =>
                   editingNoteId === n.id ? (
