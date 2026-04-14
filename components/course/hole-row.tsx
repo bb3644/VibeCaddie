@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { OfficialHoleNote, PlayerHoleNote } from "@/lib/db/types";
 
 interface HoleRowProps {
@@ -43,8 +43,17 @@ export function HoleRow({
   const [editingNote, setEditingNote] = useState(false);
   const [noteDraft, setNoteDraft] = useState(holeNote);
 
-  const [showNotes, setShowNotes] = useState(!!(officialNote?.note) || playerNotes.length > 0);
+  const [showNotes, setShowNotes] = useState(false);
   const [officialDraft, setOfficialDraft] = useState(officialNote?.note ?? "");
+
+  // Sync state when async props arrive from parent loadHoles()
+  useEffect(() => {
+    if (officialNote?.note) setOfficialDraft(officialNote.note);
+  }, [officialNote?.note]);
+
+  useEffect(() => {
+    if (playerNotes.length > 0 || officialNote?.note) setShowNotes(true);
+  }, [playerNotes.length, officialNote?.note]);
 
   const [savingOfficial, setSavingOfficial] = useState(false);
   const [playerDraft, setPlayerDraft] = useState("");
