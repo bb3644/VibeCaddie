@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { HoleRow } from "./hole-row";
 import { Scorecard } from "./scorecard";
-import type { CourseHole, OfficialHoleNote, PlayerHoleNote } from "@/lib/db/types";
+import type { CourseHole, OfficialHoleNote } from "@/lib/db/types";
 
 const TOTAL_HOLES = 18;
 
@@ -46,7 +46,6 @@ interface HoleEditorProps {
 export function HoleEditor({ courseId, teeId, onFinish, fillFromOcr }: HoleEditorProps) {
   const [holes, setHoles] = useState<HoleState[]>(defaultHoles);
   const [officialNotes, setOfficialNotes] = useState<Record<number, OfficialHoleNote>>({});
-  const [playerNotes, setPlayerNotes] = useState<Record<number, PlayerHoleNote[]>>({});
   const prevFillRef = useRef<OcrHole[] | null | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -75,20 +74,14 @@ export function HoleEditor({ courseId, teeId, onFinish, fillFromOcr }: HoleEdito
 
   const loadHoles = useCallback(async () => {
     try {
-      const [holesRes, notesRes, playerNotesRes] = await Promise.all([
+      const [holesRes, notesRes] = await Promise.all([
         fetch(`/api/courses/${courseId}/tees/${teeId}/holes`),
         fetch(`/api/courses/${courseId}/official-notes`),
-        fetch(`/api/courses/${courseId}/player-notes`),
       ]);
 
       if (notesRes.ok) {
         const notes = (await notesRes.json()) as Record<number, OfficialHoleNote>;
         setOfficialNotes(notes);
-      }
-
-      if (playerNotesRes.ok) {
-        const pNotes = (await playerNotesRes.json()) as Record<number, PlayerHoleNote[]>;
-        setPlayerNotes(pNotes);
       }
 
       if (!holesRes.ok) return;
@@ -174,10 +167,6 @@ export function HoleEditor({ courseId, teeId, onFinish, fillFromOcr }: HoleEdito
     });
   }
 
-  function handlePlayerNotesChange(holeNumber: number, notes: PlayerHoleNote[]) {
-    setPlayerNotes((prev) => ({ ...prev, [holeNumber]: notes }));
-  }
-
   function handleOfficialNoteSave(holeNumber: number, note: OfficialHoleNote | null) {
     setOfficialNotes((prev) => {
       const next = { ...prev };
@@ -227,10 +216,8 @@ export function HoleEditor({ courseId, teeId, onFinish, fillFromOcr }: HoleEdito
             holeId={hole.holeId}
             courseId={courseId}
             officialNote={officialNotes[i + 1] ?? null}
-            playerNotes={playerNotes[i + 1] ?? []}
             onChange={(data) => handleHoleChange(i, data)}
             onOfficialNoteSave={(note) => handleOfficialNoteSave(i + 1, note)}
-            onPlayerNotesChange={(notes) => handlePlayerNotesChange(i + 1, notes)}
           />
         ))}
       </Card>
