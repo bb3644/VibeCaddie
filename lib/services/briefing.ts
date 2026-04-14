@@ -111,6 +111,11 @@ export async function generateBriefing(
     driver_ok_holes: briefingData.driver_ok_holes,
     avoid_side: briefingData.avoid_side,
     display_text: llmResponse.content,
+    playing_handicap: playingHandicap,
+    handicap_index: playerProfile?.handicap_index ?? null,
+    course_rating: teeInfo?.course_rating ?? null,
+    slope_rating: teeInfo?.slope_rating ?? null,
+    par_total: teeInfo?.par_total ?? null,
     hole_strategies: briefingData.hole_strategies.map(s => ({
       hole_number: s.hole_number,
       decision: s.decision,

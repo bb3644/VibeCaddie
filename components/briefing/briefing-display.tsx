@@ -217,6 +217,20 @@ export function BriefingDisplay({ briefing }: BriefingDisplayProps) {
         </div>
       </Card>
 
+      {/* Playing Handicap calculation */}
+      {bj.playing_handicap != null && bj.handicap_index != null && (
+        <Card>
+          <p className="text-[0.8125rem] font-medium text-secondary mb-2">Playing Handicap Today</p>
+          <div className="flex items-baseline gap-3">
+            <span className="text-[2rem] font-bold text-text">{bj.playing_handicap}</span>
+            <span className="text-[0.875rem] text-secondary">strokes received</span>
+          </div>
+          <p className="text-[0.8125rem] text-secondary mt-1">
+            HI {bj.handicap_index} × ({bj.slope_rating ?? "—"} ÷ 113) + ({bj.course_rating ?? "—"} − {bj.par_total ?? "—"}) = {bj.playing_handicap}
+          </p>
+        </Card>
+      )}
+
       {/* LLM 生成的文字内容 */}
       <Card>
         <SectionTitle className="mb-4">Caddie Notes</SectionTitle>

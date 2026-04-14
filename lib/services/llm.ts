@@ -95,6 +95,11 @@ Where to play safe and where opportunities exist.
 (Only include if player history is provided. Skip this section entirely if no history.)
 What worked and what to watch out for based on past rounds.
 
+## Using Player Notes
+When player notes exist for a hole, you MUST reference them directly by hole number.
+Player notes may be in any language including Chinese — always read and use them regardless of language.
+Example: "On Hole 3, your note says '左边有水' (water on the left) — aim right off the tee."
+
 Use confidence-adaptive language based on the confidence level provided:
 - low confidence: "may help", "likely safer", "can reduce risk", "worth trying"
 - medium confidence: "has been safer", "tends to work better", "usually helps"

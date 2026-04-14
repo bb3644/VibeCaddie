@@ -227,6 +227,11 @@ export interface BriefingJson {
   driver_ok_holes: number[];
   avoid_side: 'left' | 'right' | 'none';
   display_text: string;
+  playing_handicap?: number | null;
+  handicap_index?: number | null;
+  course_rating?: number | null;
+  slope_rating?: number | null;
+  par_total?: number | null;
   hole_strategies?: Array<{
     hole_number: number;
     decision: string;
