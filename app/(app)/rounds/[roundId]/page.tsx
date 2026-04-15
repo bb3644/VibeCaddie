@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { RoundSummary } from "@/components/round/round-summary";
+import { RecapDisplay } from "@/components/recap/recap-display";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import type { Round, RoundHole, CourseHole } from "@/lib/db/types";
 
 interface RoundDetail extends Round {
@@ -26,6 +28,21 @@ export default function RoundDetailPage() {
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
 
+  // Round notes
+  const [roundNotes, setRoundNotes] = useState("");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const saveNotesTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Inline recap generation
+  const [recapText, setRecapText] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [recapError, setRecapError] = useState("");
+
+  // Edit recap
+  const [editingRecap, setEditingRecap] = useState(false);
+  const [editRecapText, setEditRecapText] = useState("");
+  const [savingRecap, setSavingRecap] = useState(false);
+
   useEffect(() => {
     async function load() {
       try {
@@ -33,6 +50,8 @@ export default function RoundDetailPage() {
         if (res.ok) {
           const data = (await res.json()) as RoundDetail;
           setRound(data);
+          if (data.round_notes) setRoundNotes(data.round_notes);
+          if (data.recap_text) setRecapText(data.recap_text);
         } else if (res.status === 404) {
           setError("Round not found.");
         } else {
@@ -46,6 +65,87 @@ export default function RoundDetailPage() {
     }
     load();
   }, [roundId]);
+
+  // Auto-save notes 1 second after the user stops typing
+  const handleNotesChange = useCallback((value: string) => {
+    setRoundNotes(value);
+    if (saveNotesTimer.current) clearTimeout(saveNotesTimer.current);
+    saveNotesTimer.current = setTimeout(async () => {
+      setSavingNotes(true);
+      try {
+        await fetch(`/api/rounds/${roundId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ round_notes: value.trim() }),
+        });
+      } catch {
+        // silent
+      } finally {
+        setSavingNotes(false);
+      }
+    }, 1000);
+  }, [roundId]);
+
+  // Generate recap inline
+  const handleGenerate = useCallback(async () => {
+    setGenerating(true);
+    setRecapError("");
+
+    // Flush any pending notes save first
+    if (saveNotesTimer.current) {
+      clearTimeout(saveNotesTimer.current);
+      saveNotesTimer.current = null;
+    }
+    if (roundNotes.trim()) {
+      try {
+        await fetch(`/api/rounds/${roundId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ round_notes: roundNotes.trim() }),
+        });
+      } catch {
+        // continue anyway
+      }
+    }
+
+    try {
+      const res = await fetch("/api/recap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ round_id: roundId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRecapText(data.recap_text);
+      } else {
+        const data = await res.json().catch(() => null);
+        setRecapError(data?.error ?? "Failed to generate recap.");
+      }
+    } catch {
+      setRecapError("Something went wrong. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  }, [roundId, roundNotes]);
+
+  const handleSaveRecapEdit = useCallback(async () => {
+    setSavingRecap(true);
+    try {
+      const res = await fetch(`/api/rounds/${roundId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recap_text: editRecapText }),
+      });
+      if (res.ok) {
+        setRecapText(editRecapText);
+        setEditingRecap(false);
+      }
+    } catch {
+      // silent
+    } finally {
+      setSavingRecap(false);
+    }
+  }, [roundId, editRecapText]);
 
   // 当总分变化时，自动保存
   const handleTotalScoreChange = useCallback(
@@ -61,7 +161,7 @@ export default function RoundDetailPage() {
           prev ? { ...prev, total_score: totalScore } : prev
         );
       } catch {
-        // 静默失败
+        // silent
       }
     },
     [round, roundId]
@@ -114,9 +214,11 @@ export default function RoundDetailPage() {
     day: "numeric",
   });
 
+  const holesWithNotes = round.holes.filter((h) => h.hole_notes);
+
   return (
     <div className="flex flex-col gap-6">
-      {/* 标题 */}
+      {/* Header */}
       <div>
         <Link href="/rounds">
           <span className="text-accent text-[0.8125rem] font-medium hover:underline cursor-pointer">
@@ -134,7 +236,7 @@ export default function RoundDetailPage() {
         )}
       </div>
 
-      {/* 汇总表格 */}
+      {/* Scorecard */}
       {round.holes.length > 0 ? (
         <RoundSummary
           holes={round.holes}
@@ -149,27 +251,108 @@ export default function RoundDetailPage() {
         </div>
       )}
 
-      {/* 操作按钮 */}
-      <div className="flex flex-col gap-3">
-        <div className="flex gap-3">
-          <Link href={`/rounds/${roundId}/edit`} className="flex-1">
-            <Button variant="secondary" className="w-full">Edit Holes</Button>
-          </Link>
-          {round.recap_text ? (
-            <>
-              <Link href={`/rounds/${roundId}/recap`} className="flex-1">
-                <Button className="w-full">View Recap</Button>
-              </Link>
-              <Link href={`/rounds/${roundId}/recap?regenerate=1`} className="flex-1">
-                <Button variant="secondary" className="w-full">Regenerate</Button>
-              </Link>
-            </>
-          ) : (
-            <Link href={`/rounds/${roundId}/recap`} className="flex-1">
-              <Button className="w-full">Generate Recap</Button>
-            </Link>
+      {/* Per-hole notes */}
+      {holesWithNotes.length > 0 && (
+        <Card>
+          <p className="text-[0.9375rem] font-semibold text-text mb-3">Hole Notes</p>
+          <div className="flex flex-col gap-2">
+            {holesWithNotes.map((h) => (
+              <div key={h.hole_number} className="flex gap-3 text-[0.875rem]">
+                <span className="font-medium text-secondary shrink-0 w-14">
+                  Hole {h.hole_number}
+                </span>
+                <span className="text-text">{h.hole_notes}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Round notes */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <label htmlFor="round-notes" className="text-[0.9375rem] font-semibold text-text">
+            Round Notes
+          </label>
+          {savingNotes && (
+            <span className="text-[0.75rem] text-secondary">Saving...</span>
           )}
         </div>
+        <textarea
+          id="round-notes"
+          value={roundNotes}
+          onChange={(e) => handleNotesChange(e.target.value)}
+          placeholder="How did it go? Conditions, how you felt, specific struggles or moments..."
+          rows={4}
+          className="w-full rounded-lg border border-divider p-3 text-[0.9375rem] text-text leading-relaxed placeholder:text-secondary/50 focus:border-accent focus:ring-1 focus:ring-accent outline-none resize-y"
+        />
+      </div>
+
+      {/* AI Recap */}
+      {generating ? (
+        <div className="flex flex-col items-center gap-3 py-8">
+          <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+          <p className="text-secondary text-[0.9375rem]">Generating your analysis...</p>
+        </div>
+      ) : recapText ? (
+        <div className="flex flex-col gap-3">
+          {editingRecap ? (
+            <>
+              <textarea
+                value={editRecapText}
+                onChange={(e) => setEditRecapText(e.target.value)}
+                className="w-full min-h-[400px] rounded-lg border border-divider p-4 text-[0.9375rem] text-text leading-relaxed focus:border-accent focus:ring-1 focus:ring-accent outline-none resize-y"
+              />
+              <div className="flex gap-3">
+                <Button onClick={handleSaveRecapEdit} disabled={savingRecap}>
+                  {savingRecap ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button variant="secondary" onClick={() => setEditingRecap(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <RecapDisplay
+                recapText={recapText}
+                courseName={round.course_name ?? "Unknown Course"}
+                teeName={round.tee_name ?? ""}
+                playedDate={round.played_date}
+              />
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setEditRecapText(recapText);
+                    setEditingRecap(true);
+                  }}
+                >
+                  Edit Recap
+                </Button>
+                <Button variant="ghost" onClick={handleGenerate}>
+                  Regenerate
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <>
+          {recapError && (
+            <p className="text-red-600 text-[0.875rem]">{recapError}</p>
+          )}
+          <Button onClick={handleGenerate} className="w-full">
+            Generate Recap
+          </Button>
+        </>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex flex-col gap-3 border-t border-divider pt-4">
+        <Link href={`/rounds/${roundId}/edit`}>
+          <Button variant="secondary" className="w-full">Edit Holes</Button>
+        </Link>
         <Button
           variant="ghost"
           onClick={handleDelete}
