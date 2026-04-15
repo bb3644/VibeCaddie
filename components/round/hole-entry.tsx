@@ -10,7 +10,7 @@ const TEE_RESULTS = ["FW", "LEFT", "RIGHT", "SHORT", "OB"] as const;
 type TeeResult = (typeof TEE_RESULTS)[number];
 
 const TEE_RESULT_LABELS: Record<TeeResult, string> = {
-  FW:    "FW",
+  FW:    "FIR",
   LEFT:  "Left",
   RIGHT: "Right",
   SHORT: "Short",

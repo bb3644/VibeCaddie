@@ -143,7 +143,7 @@ export function RoundSummary({
             <td className="py-2 pr-2 text-secondary">{stats.totalPar}</td>
             <td className="py-2 pr-2" />
             <td className="py-2 pr-2 text-green-600">
-              FW {stats.fwCount}
+              FIR {stats.fwCount}
             </td>
             <td className="py-2 pr-2 text-text">
               {stats.holesWithScore > 0 ? stats.totalScore : "-"}
@@ -154,7 +154,7 @@ export function RoundSummary({
           </tr>
           <tr>
             <td colSpan={6} className="pt-1 text-[0.75rem] text-secondary">
-              GIR: {stats.girCount} &middot; FW: {stats.fwCount} / {holeNumbers.length}
+              GIR: {stats.girCount} &middot; FIR: {stats.fwCount} / {holeNumbers.length}
             </td>
           </tr>
         </tfoot>
