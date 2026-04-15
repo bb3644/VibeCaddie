@@ -259,7 +259,7 @@ export default function PrintBriefingPage() {
           letter-spacing: 0.06em; color: #86868b; margin-bottom: 2px;
         }
         .note-text { font-size: 11.5px; color: #1d1d1f; line-height: 1.4; }
-        .player-note { display: flex; gap: 5px; font-size: 11.5px; color: #3a3a3c; line-height: 1.4; }
+        .player-note { display: flex; gap: 5px; font-size: 11.5px; color: #1d1d1f; line-height: 1.4; }
         .player-name { font-weight: 500; flex-shrink: 0; color: #1d1d1f; }
 
         /* Footer */

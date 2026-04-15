@@ -74,7 +74,7 @@ export function SidebarNav({ items }: SidebarNavProps) {
   }
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 z-50 hidden lg:flex flex-col w-[240px] border-r border-divider" style={{ background: "#F5F4EF" }}>
+    <aside className="fixed left-0 top-0 bottom-0 z-50 hidden lg:flex flex-col w-[240px] border-r border-divider" style={{ backgroundColor: "#FFFFFF" }}>
       {/* Logo */}
       <div className="px-4 pt-6 pb-5 border-b border-divider">
         <Link href="/">

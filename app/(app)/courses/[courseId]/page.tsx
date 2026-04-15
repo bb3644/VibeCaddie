@@ -88,6 +88,8 @@ function CourseDetailContent() {
           setCourse(data);
         } else if (courseRes.status === 404) {
           router.push("/courses");
+        } else {
+          setFetchError("Failed to load course. Please try again.");
         }
 
         if (profileRes?.ok) {

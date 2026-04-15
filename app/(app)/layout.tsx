@@ -5,13 +5,13 @@ import { Logo } from "@/components/ui/logo";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ backgroundColor: "#FFFFFF" }}>
       <AppNav />
 
       {/* Mobile header — logo bar, hidden on desktop */}
       <header
         className="lg:hidden fixed top-0 left-0 right-0 z-40 border-b border-divider flex items-center justify-center px-6"
-        style={{ background: "#F5F4EF", height: "64px" }}
+        style={{ backgroundColor: "#FFFFFF", height: "64px" }}
       >
         <Link href="/">
           <Logo className="h-[44px] w-auto" />

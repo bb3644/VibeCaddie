@@ -200,7 +200,10 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
     const [saving, setSaving] = useState(false);
     const [saved,  setSaved]  = useState(false);
 
-    // 切换洞号时重置
+    // Reset fields only when the hole number changes (not when async data updates arrive).
+    // Reading localData/initialData from the closure is intentional — they are current
+    // at the moment holeNumber changes, so we get the right saved values without
+    // re-running the effect (and wiping user edits) every time an API save resolves.
     useEffect(() => {
       setTeeClub         (localData?.tee_club          ?? initialData?.tee_club          ?? "");
       setTeeResult       (localData?.tee_result        ?? initialData?.tee_result        ?? "");
@@ -217,7 +220,7 @@ export const HoleEntry = forwardRef<HoleEntryHandle, HoleEntryProps>(
       setScore        (localData?.score          ?? initialData?.score          ?? par);
       setPutts        (localData?.putts          ?? initialData?.putts          ?? 2);
       setSaved(false);
-    }, [holeNumber, initialData, localData, par]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [holeNumber]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const buildLocal = useCallback((): HoleLocalData => ({
       hole_number:        holeNumber,
