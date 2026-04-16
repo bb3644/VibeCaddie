@@ -123,10 +123,10 @@ const OVAL_RY = 155;
 // Zone boundaries (x values)
 const ZONE_LEFT = OVAL_CX - OVAL_RX / 3;   // ≈ 79
 const ZONE_RIGHT = OVAL_CX + OVAL_RX / 3;  // ≈ 141
-// Distance y positions (top = far, bottom = close)
-const DIST_200 = OVAL_CY - OVAL_RY * 0.55;  // ≈ 95
+// Distance y positions (top = tee, bottom = far)
+const DIST_100 = OVAL_CY - OVAL_RY * 0.55;  // ≈ 95  (close to tee)
 const DIST_150 = OVAL_CY;                    // ≈ 180
-const DIST_100 = OVAL_CY + OVAL_RY * 0.55;  // ≈ 265
+const DIST_200 = OVAL_CY + OVAL_RY * 0.55;  // ≈ 265 (far from tee)
 
 function DriveTracker({
   shots,
@@ -202,9 +202,9 @@ function DriveTracker({
         </g>
       ))}
 
-      {/* Tee marker at bottom */}
-      <rect x={OVAL_CX - 6} y={DRIVE_H - 22} width={12} height={8} rx={2} fill="#1d4ed8" />
-      <text x={OVAL_CX} y={DRIVE_H - 15} textAnchor="middle" fontSize={7} fill="white" fontWeight="bold" fontFamily="sans-serif">TEE</text>
+      {/* Tee marker at top */}
+      <rect x={OVAL_CX - 6} y={14} width={12} height={8} rx={2} fill="#1d4ed8" />
+      <text x={OVAL_CX} y={20} textAnchor="middle" fontSize={7} fill="white" fontWeight="bold" fontFamily="sans-serif">TEE</text>
 
       {/* Shot dots */}
       {shots.map(({ holeNumber, x, y }) => {
