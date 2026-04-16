@@ -159,7 +159,15 @@ export default function PrintBriefingPage() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-          font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+          font-family:
+            -apple-system, BlinkMacSystemFont,
+            "SF Pro Text", "SF Pro Display",
+            "PingFang SC", "PingFang TC",
+            "Hiragino Sans GB",
+            "Noto Sans SC", "Noto Sans CJK SC",
+            "Microsoft YaHei", "SimHei",
+            "WenQuanYi Micro Hei",
+            "Helvetica Neue", Arial, sans-serif;
           background: white;
           color: #1d1d1f;
           -webkit-font-smoothing: antialiased;
@@ -281,7 +289,8 @@ export default function PrintBriefingPage() {
         .footer-date { font-size: 10px; color: #86868b; }
       `}</style>
 
-      <div className="print-btn">
+      {/* lang="zh-Hans" helps browser pick the correct CJK glyph set */}
+      <div lang="zh-Hans" className="print-btn">
         <button className="btn-primary" onClick={() => window.print()}>
           Save as PDF / Print
         </button>
@@ -290,7 +299,7 @@ export default function PrintBriefingPage() {
         </button>
       </div>
 
-      <div className="page">
+      <div className="page" lang="zh-Hans">
         {/* ── SECTION 1: PRE-ROUND BRIEFING ── */}
         <div className="header">
           <div className="brand">Vibe Caddie · Pre-Round Briefing</div>
