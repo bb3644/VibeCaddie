@@ -56,6 +56,14 @@ function SidebarIcon({ icon, active }: { icon: NavItem["icon"]; active: boolean 
           <text x="12" y="16" textAnchor="middle" fontSize="9" fontWeight="700" fill={stroke} stroke="none" fontFamily="sans-serif">36</text>
         </svg>
       );
+    case "target":
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="6" />
+          <circle cx="12" cy="12" r="2" />
+        </svg>
+      );
   }
 }
 
