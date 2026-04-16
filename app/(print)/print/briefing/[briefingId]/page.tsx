@@ -102,10 +102,13 @@ export default function PrintBriefingPage() {
     load();
   }, [briefingId]);
 
-  // Auto-print once loaded
+  // Auto-print once loaded — wait for fonts (including Noto Sans SC) to be
+  // fully downloaded so they get embedded in the PDF
   useEffect(() => {
     if (!loading && briefing) {
-      setTimeout(() => window.print(), 500);
+      document.fonts.ready.then(() => {
+        setTimeout(() => window.print(), 300);
+      });
     }
   }, [loading, briefing]);
 
@@ -156,17 +159,18 @@ export default function PrintBriefingPage() {
   return (
     <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&display=block');
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
           font-family:
+            "Noto Sans SC",
             -apple-system, BlinkMacSystemFont,
             "SF Pro Text", "SF Pro Display",
             "PingFang SC", "PingFang TC",
             "Hiragino Sans GB",
-            "Noto Sans SC", "Noto Sans CJK SC",
             "Microsoft YaHei", "SimHei",
-            "WenQuanYi Micro Hei",
             "Helvetica Neue", Arial, sans-serif;
           background: white;
           color: #1d1d1f;
