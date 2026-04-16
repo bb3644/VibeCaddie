@@ -135,6 +135,18 @@ export default function PrintBriefingPage() {
 
   const dotColor = tee?.tee_color ? (COLOR_DOT[tee.tee_color] ?? "#9ca3af") : "#9ca3af";
 
+  // Render inline markdown (**bold**, *italic*) as React nodes
+  function renderInline(text: string): React.ReactNode {
+    const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/);
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**"))
+        return <strong key={i}>{part.slice(2, -2)}</strong>;
+      if (part.startsWith("*") && part.endsWith("*"))
+        return <em key={i}>{part.slice(1, -1)}</em>;
+      return part;
+    });
+  }
+
   // Parse briefing text into sections
   const briefingSections = bj.display_text
     .split(/^## /m)
@@ -344,12 +356,12 @@ export default function PrintBriefingPage() {
                       return (
                         <div key={lineIdx} className="briefing-bullet">
                           <span className="briefing-bullet-dot">•</span>
-                          <span>{trimmed.slice(2)}</span>
+                          <span>{renderInline(trimmed.slice(2))}</span>
                         </div>
                       );
                     }
                     if (!trimmed) return <div key={lineIdx} style={{ height: "4px" }} />;
-                    return <p key={lineIdx}>{trimmed}</p>;
+                    return <p key={lineIdx}>{renderInline(trimmed)}</p>;
                   })}
                 </div>
               )}
@@ -404,7 +416,7 @@ export default function PrintBriefingPage() {
                       {official?.note && (
                         <div className="note-block">
                           <div className="note-label">Official</div>
-                          <div className="note-text">{official.note}</div>
+                          <div className="note-text">{renderInline(official.note)}</div>
                         </div>
                       )}
                       {playerNotes.length > 0 && (
@@ -413,7 +425,7 @@ export default function PrintBriefingPage() {
                           {playerNotes.map((n) => (
                             <div key={n.id} className="player-note">
                               <span className="player-name">{n.user_name}:</span>
-                              <span>{n.note}</span>
+                              <span>{renderInline(n.note)}</span>
                             </div>
                           ))}
                         </div>
