@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { RoundSummary } from "@/components/round/round-summary";
+import { ShotTrackerSection } from "@/components/round/shot-tracker";
 import { RecapDisplay } from "@/components/recap/recap-display";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -147,6 +148,60 @@ export default function RoundDetailPage() {
     }
   }, [roundId, editRecapText]);
 
+  // Save shot tracker position (approach or drive x/y) for a hole
+  const handleSavePosition = useCallback(
+    async (holeNumber: number, type: "approach" | "drive", x: number, y: number) => {
+      const existing = round?.holes.find((h) => h.hole_number === holeNumber);
+      if (!existing) return;
+      const body: Record<string, unknown> = {
+        hole_number: holeNumber,
+        tee_club: existing.tee_club,
+        tee_result: existing.tee_result,
+        approach_club: existing.approach_club,
+        approach_distance: existing.approach_distance,
+        approach_direction: existing.approach_direction,
+        approach_yardage: existing.approach_yardage,
+        up_down: existing.up_down,
+        recovery_club: existing.recovery_club,
+        hole_notes: existing.hole_notes,
+        score: existing.score,
+        putts: existing.putts,
+        bunker_count: existing.bunker_count,
+        water_count: existing.water_count,
+        penalty_count: existing.penalty_count,
+        approach_x: existing.approach_x,
+        approach_y: existing.approach_y,
+        drive_x: existing.drive_x,
+        drive_y: existing.drive_y,
+      };
+      if (type === "approach") { body.approach_x = x; body.approach_y = y; }
+      else { body.drive_x = x; body.drive_y = y; }
+      try {
+        const res = await fetch(`/api/rounds/${roundId}/holes`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setRound((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  holes: prev.holes.map((h) =>
+                    h.hole_number === holeNumber ? { ...h, ...updated } : h
+                  ),
+                }
+              : prev
+          );
+        }
+      } catch {
+        // silent
+      }
+    },
+    [round, roundId]
+  );
+
   // 当总分变化时，自动保存
   const handleTotalScoreChange = useCallback(
     async (totalScore: number) => {
@@ -249,6 +304,18 @@ export default function RoundDetailPage() {
             No hole data recorded for this round.
           </p>
         </div>
+      )}
+
+      {/* Shot Tracker */}
+      {round.holes.length > 0 && (
+        <Card>
+          <p className="text-[0.9375rem] font-semibold text-text mb-4">Shot Tracker</p>
+          <ShotTrackerSection
+            holes={round.holes}
+            holesPlayed={round.holes_played ?? 18}
+            onSavePosition={handleSavePosition}
+          />
+        </Card>
       )}
 
       {/* Per-hole notes */}

@@ -106,6 +106,52 @@ export async function generateRecap(
     prompt += '\n';
   }
 
+  // Shot tracker positional analysis
+  const holesWithApproach = roundHoles.filter(h => h.approach_x != null && h.approach_y != null);
+  const holesWithDrive = roundHoles.filter(h => h.drive_x != null && h.drive_y != null);
+  if (holesWithApproach.length > 0 || holesWithDrive.length > 0) {
+    prompt += `\n## Shot Tracker Data\n`;
+    if (holesWithApproach.length > 0) {
+      // Analyse approach positions: centre (0.5,0.5), rings at r=40/300=0.133 (10ft), r=85/300=0.283 (20ft), r=130/300=0.433 (30ft)
+      let inside10 = 0, inside20 = 0, inside30 = 0, outside30 = 0;
+      const leftBias: number[] = [], longBias: number[] = [];
+      for (const h of holesWithApproach) {
+        const dx = (h.approach_x! - 0.5);
+        const dy = (h.approach_y! - 0.5);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist <= 0.133) inside10++;
+        else if (dist <= 0.283) inside20++;
+        else if (dist <= 0.433) inside30++;
+        else outside30++;
+        leftBias.push(dx);
+        longBias.push(dy);
+      }
+      const avgLeft = leftBias.reduce((a,b) => a+b, 0) / leftBias.length;
+      const avgLong = longBias.reduce((a,b) => a+b, 0) / longBias.length;
+      const lateralTend = Math.abs(avgLeft) > 0.08 ? (avgLeft < 0 ? 'left of pin' : 'right of pin') : 'centered laterally';
+      const depthTend = Math.abs(avgLong) > 0.08 ? (avgLong < 0 ? 'short of pin' : 'long of pin') : 'good depth';
+      prompt += `Approach shots (${holesWithApproach.length} holes tracked): inside 10ft: ${inside10}, 10-20ft: ${inside20}, 20-30ft: ${inside30}, outside 30ft: ${outside30}\n`;
+      prompt += `Approach tendency: ${lateralTend}, ${depthTend}\n`;
+    }
+    if (holesWithDrive.length > 0) {
+      let lf = 0, cf = 0, rf = 0;
+      let shortDrives = 0, midDrives = 0, longDrives = 0;
+      for (const h of holesWithDrive) {
+        const nx = h.drive_x!;
+        const ny = h.drive_y!;
+        // Zone: DRIVE_W=220, ZONE_LEFT≈79/220=0.36, ZONE_RIGHT≈141/220=0.64
+        if (nx < 0.36) lf++;
+        else if (nx > 0.64) rf++;
+        else cf++;
+        // Depth: DRIVE_H=360, DIST_200≈95/360=0.264 (far), DIST_100≈265/360=0.736 (close)
+        if (ny < 0.264) longDrives++;       // beyond 200
+        else if (ny < 0.736) midDrives++;   // 100-200
+        else shortDrives++;                  // inside 100
+      }
+      prompt += `Drive positions (${holesWithDrive.length} holes tracked): LF: ${lf}, CF: ${cf}, RF: ${rf} | Short (<100y): ${shortDrives}, Mid (100-200y): ${midDrives}, Long (200y+): ${longDrives}\n`;
+    }
+  }
+
   // Plan vs actual
   if (briefing?.briefing_json?.hole_strategies?.length) {
     const comparison = buildComparison(briefing.briefing_json.hole_strategies, roundHoles, courseHoles);

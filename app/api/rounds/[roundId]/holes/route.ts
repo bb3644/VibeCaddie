@@ -37,6 +37,10 @@ export async function PUT(
       bunker_count,
       water_count,
       penalty_count,
+      approach_x,
+      approach_y,
+      drive_x,
+      drive_y,
     } = body as {
       hole_number: number;
       tee_club?: string;
@@ -53,6 +57,10 @@ export async function PUT(
       bunker_count?: number;
       water_count?: number;
       penalty_count?: number;
+      approach_x?: number | null;
+      approach_y?: number | null;
+      drive_x?: number | null;
+      drive_y?: number | null;
     };
 
     if (!hole_number) {
@@ -95,6 +103,10 @@ export async function PUT(
       bunker_count: bunker_count ?? 0,
       water_count: water_count ?? 0,
       penalty_count: penalty_count ?? 0,
+      approach_x: approach_x ?? null,
+      approach_y: approach_y ?? null,
+      drive_x: drive_x ?? null,
+      drive_y: drive_y ?? null,
     });
 
     // 自动重算总分

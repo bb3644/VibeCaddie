@@ -125,9 +125,14 @@ export default function RoundsListPage() {
             How your rounds have been going.
           </p>
         </div>
-        <Link href="/rounds/new">
-          <Button>Add Round Recap</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/rounds/tracker">
+            <Button variant="secondary">Shot Tracker</Button>
+          </Link>
+          <Link href="/rounds/new">
+            <Button>Add Round Recap</Button>
+          </Link>
+        </div>
       </div>
 
       {briefings.length > 0 && (

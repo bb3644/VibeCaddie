@@ -140,6 +140,10 @@ export interface RoundHole {
   bunker_count: number;
   water_count: number;
   penalty_count: number;
+  approach_x: number | null;
+  approach_y: number | null;
+  drive_x: number | null;
+  drive_y: number | null;
 }
 
 export interface PlayerHoleHistory {

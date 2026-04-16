@@ -77,11 +77,15 @@ export async function upsertRoundHole(data: {
   bunker_count?: number;
   water_count?: number;
   penalty_count?: number;
+  approach_x?: number | null;
+  approach_y?: number | null;
+  drive_x?: number | null;
+  drive_y?: number | null;
 }): Promise<RoundHole> {
   const result = await query<RoundHole>(
     `INSERT INTO round_holes
-       (round_id, hole_number, tee_club, tee_result, approach_club, approach_distance, approach_direction, approach_yardage, up_down, recovery_club, hole_notes, score, putts, bunker_count, water_count, penalty_count)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+       (round_id, hole_number, tee_club, tee_result, approach_club, approach_distance, approach_direction, approach_yardage, up_down, recovery_club, hole_notes, score, putts, bunker_count, water_count, penalty_count, approach_x, approach_y, drive_x, drive_y)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
      ON CONFLICT (round_id, hole_number)
      DO UPDATE SET
        tee_club = EXCLUDED.tee_club,
@@ -97,7 +101,11 @@ export async function upsertRoundHole(data: {
        putts = EXCLUDED.putts,
        bunker_count = EXCLUDED.bunker_count,
        water_count = EXCLUDED.water_count,
-       penalty_count = EXCLUDED.penalty_count
+       penalty_count = EXCLUDED.penalty_count,
+       approach_x = COALESCE(EXCLUDED.approach_x, round_holes.approach_x),
+       approach_y = COALESCE(EXCLUDED.approach_y, round_holes.approach_y),
+       drive_x = COALESCE(EXCLUDED.drive_x, round_holes.drive_x),
+       drive_y = COALESCE(EXCLUDED.drive_y, round_holes.drive_y)
      RETURNING *`,
     [
       data.round_id,
@@ -116,6 +124,10 @@ export async function upsertRoundHole(data: {
       data.bunker_count ?? 0,
       data.water_count ?? 0,
       data.penalty_count ?? 0,
+      data.approach_x ?? null,
+      data.approach_y ?? null,
+      data.drive_x ?? null,
+      data.drive_y ?? null,
     ]
   );
   return result.rows[0];
