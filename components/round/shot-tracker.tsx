@@ -190,7 +190,7 @@ function DriveTracker({
       <ellipse cx={OVAL_CX} cy={OVAL_CY} rx={OVAL_RX} ry={OVAL_RY} fill="none" stroke="#4b5563" strokeWidth={2} />
 
       {/* Zone labels */}
-      <text x={ZONE_LEFT / 2 + OVAL_CX - OVAL_RX / 2} y={24} textAnchor="middle" fontSize={10} fontWeight="bold" fill="#374151" fontFamily="sans-serif">LF</text>
+      <text x={(OVAL_CX - OVAL_RX + ZONE_LEFT) / 2} y={24} textAnchor="middle" fontSize={10} fontWeight="bold" fill="#374151" fontFamily="sans-serif">LF</text>
       <text x={OVAL_CX} y={24} textAnchor="middle" fontSize={10} fontWeight="bold" fill="#374151" fontFamily="sans-serif">CF</text>
       <text x={(ZONE_RIGHT + OVAL_CX + OVAL_RX) / 2} y={24} textAnchor="middle" fontSize={10} fontWeight="bold" fill="#374151" fontFamily="sans-serif">RF</text>
 
@@ -449,16 +449,6 @@ export function ShotTrackerOverlay({ rounds }: { rounds: OverlayRound[] }) {
             })}
           </svg>
         ) : (
-          <DriveTracker
-            shots={[]}
-            selectedHole={null}
-            readonly
-          />
-        )}
-      </div>
-
-      {tab === "drive" && (
-        <div className="relative">
           <svg
             viewBox={`0 0 ${DRIVE_W} ${DRIVE_H}`}
             className="w-full max-w-[200px] mx-auto select-none"
@@ -481,12 +471,18 @@ export function ShotTrackerOverlay({ rounds }: { rounds: OverlayRound[] }) {
               <line x1={0} y1={DIST_100} x2={DRIVE_W} y2={DIST_100} stroke="#9ca3af" strokeWidth={1} strokeDasharray="6 3" />
             </g>
             <ellipse cx={OVAL_CX} cy={OVAL_CY} rx={OVAL_RX} ry={OVAL_RY} fill="none" stroke="#4b5563" strokeWidth={2} />
+            {/* Zone labels */}
+            <text x={(OVAL_CX - OVAL_RX + ZONE_LEFT) / 2} y={24} textAnchor="middle" fontSize={10} fontWeight="bold" fill="#374151" fontFamily="sans-serif">LF</text>
+            <text x={OVAL_CX} y={24} textAnchor="middle" fontSize={10} fontWeight="bold" fill="#374151" fontFamily="sans-serif">CF</text>
+            <text x={(ZONE_RIGHT + OVAL_CX + OVAL_RX) / 2} y={24} textAnchor="middle" fontSize={10} fontWeight="bold" fill="#374151" fontFamily="sans-serif">RF</text>
+            {/* Distance badges */}
             {[{ y: DIST_200, label: "200 yds" }, { y: DIST_150, label: "150 yds" }, { y: DIST_100, label: "100 yds" }].map(({ y, label }) => (
               <g key={label}>
                 <rect x={DRIVE_W - 54} y={y - 9} width={52} height={14} rx={3} fill="white" fillOpacity={0.85} />
                 <text x={DRIVE_W - 28} y={y + 2} textAnchor="middle" fontSize={8.5} fill="#4b5563" fontFamily="sans-serif">{label}</text>
               </g>
             ))}
+            {/* Overlay dots */}
             {rounds.map((r, i) => {
               const color = OVERLAY_COLORS[i % OVERLAY_COLORS.length];
               return r.holes
@@ -503,8 +499,8 @@ export function ShotTrackerOverlay({ rounds }: { rounds: OverlayRound[] }) {
                 ));
             })}
           </svg>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
