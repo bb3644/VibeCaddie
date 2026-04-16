@@ -135,16 +135,13 @@ export default function PrintBriefingPage() {
 
   const dotColor = tee?.tee_color ? (COLOR_DOT[tee.tee_color] ?? "#9ca3af") : "#9ca3af";
 
-  // Render inline markdown (**bold**, *italic*) as React nodes
-  function renderInline(text: string): React.ReactNode {
-    const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/);
-    return parts.map((part, i) => {
-      if (part.startsWith("**") && part.endsWith("**"))
-        return <strong key={i}>{part.slice(2, -2)}</strong>;
-      if (part.startsWith("*") && part.endsWith("*"))
-        return <em key={i}>{part.slice(1, -1)}</em>;
-      return part;
-    });
+  // Strip markdown markers so they render as plain readable text
+  function clean(text: string): string {
+    return text
+      .replace(/\*\*(.+?)\*\*/g, "$1")    // **bold** → bold
+      .replace(/\*(.+?)\*/g, "$1")         // *italic* → italic
+      .replace(/^#+\s*/gm, "")             // ## headings → plain
+      .replace(/`(.+?)`/g, "$1");          // `code` → plain
   }
 
   // Parse briefing text into sections
@@ -356,12 +353,12 @@ export default function PrintBriefingPage() {
                       return (
                         <div key={lineIdx} className="briefing-bullet">
                           <span className="briefing-bullet-dot">•</span>
-                          <span>{renderInline(trimmed.slice(2))}</span>
+                          <span>{clean(trimmed.slice(2))}</span>
                         </div>
                       );
                     }
                     if (!trimmed) return <div key={lineIdx} style={{ height: "4px" }} />;
-                    return <p key={lineIdx}>{renderInline(trimmed)}</p>;
+                    return <p key={lineIdx}>{clean(trimmed)}</p>;
                   })}
                 </div>
               )}
@@ -416,7 +413,7 @@ export default function PrintBriefingPage() {
                       {official?.note && (
                         <div className="note-block">
                           <div className="note-label">Official</div>
-                          <div className="note-text">{renderInline(official.note)}</div>
+                          <div className="note-text">{clean(official.note)}</div>
                         </div>
                       )}
                       {playerNotes.length > 0 && (
@@ -425,7 +422,7 @@ export default function PrintBriefingPage() {
                           {playerNotes.map((n) => (
                             <div key={n.id} className="player-note">
                               <span className="player-name">{n.user_name}:</span>
-                              <span>{renderInline(n.note)}</span>
+                              <span>{clean(n.note)}</span>
                             </div>
                           ))}
                         </div>
