@@ -47,7 +47,7 @@ export default function SelectProfilePage() {
   }
 
   async function deleteProfile(userId: string, name: string) {
-    if (!confirm(`确定删除「${name}」？所有打球记录都会被清除，不可恢复。`)) return;
+    if (!confirm(`Delete "${name}"? All round data will be permanently removed.`)) return;
     try {
       const res = await fetch("/api/profiles", {
         method: "DELETE",
@@ -86,7 +86,7 @@ export default function SelectProfilePage() {
       <Card className="w-full max-w-[400px]">
         <div className="flex flex-col items-center gap-1 mb-6">
           <h1 className="text-[1.5rem] font-semibold text-text">
-            选择球员
+            Select Player
           </h1>
           <p className="text-[0.875rem] text-secondary">
             Who&apos;s playing today?
@@ -94,7 +94,7 @@ export default function SelectProfilePage() {
         </div>
 
         {loading ? (
-          <p className="text-center text-secondary text-[0.875rem]">加载中...</p>
+          <p className="text-center text-secondary text-[0.875rem]">Loading...</p>
         ) : (
           <div className="flex flex-col gap-2">
             {profiles.map((p) => (
@@ -113,12 +113,12 @@ export default function SelectProfilePage() {
                   disabled={selecting !== null}
                   className="flex-1 text-left px-4 py-3 text-[0.9375rem] font-medium text-text disabled:opacity-50 cursor-pointer"
                 >
-                  {selecting === p.user_id ? "进入中..." : p.name}
+                  {selecting === p.user_id ? "Loading..." : p.name}
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); deleteProfile(p.user_id, p.name); }}
                   className="px-3 py-3 text-secondary hover:text-red-500 transition-colors cursor-pointer"
-                  title="删除"
+                  title="Delete"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="3 6 5 6 21 6" />
@@ -136,10 +136,10 @@ export default function SelectProfilePage() {
           {showCreate ? (
             <div className="flex flex-col gap-3">
               <Input
-                label="名字"
+                label="Name"
                 value={newName}
                 onChange={setNewName}
-                placeholder="输入球员名字"
+                placeholder="Enter player name"
               />
               <div className="flex gap-2">
                 <Button
@@ -148,7 +148,7 @@ export default function SelectProfilePage() {
                   disabled={creating || !newName.trim()}
                   className="flex-1"
                 >
-                  {creating ? "创建中..." : "创建并进入"}
+                  {creating ? "Creating..." : "Create & Enter"}
                 </Button>
                 <Button
                   variant="secondary"
@@ -157,7 +157,7 @@ export default function SelectProfilePage() {
                     setNewName("");
                   }}
                 >
-                  取消
+                  Cancel
                 </Button>
               </div>
             </div>
@@ -167,7 +167,7 @@ export default function SelectProfilePage() {
               onClick={() => setShowCreate(true)}
               className="w-full"
             >
-              + 新建球员
+              + New Player
             </Button>
           )}
         </div>
