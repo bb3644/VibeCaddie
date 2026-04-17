@@ -49,6 +49,25 @@ export default function PrintBriefingPage() {
   const [rows, setRows] = useState<HoleWithNotes[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Inject Noto Sans SC via <link> in <head> — the only reliable way for
+  // Chrome to embed CJK fonts in the generated PDF (body @import is ignored)
+  useEffect(() => {
+    const els: HTMLElement[] = [];
+    function addLink(attrs: Record<string, string>) {
+      const el = document.createElement("link");
+      Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+      document.head.appendChild(el);
+      els.push(el);
+    }
+    addLink({ rel: "preconnect", href: "https://fonts.googleapis.com" });
+    addLink({ rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "anonymous" });
+    addLink({
+      rel: "stylesheet",
+      href: "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&display=block",
+    });
+    return () => els.forEach((el) => document.head.contains(el) && document.head.removeChild(el));
+  }, []);
+
   useEffect(() => {
     async function load() {
       try {
@@ -159,8 +178,6 @@ export default function PrintBriefingPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&display=block');
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
