@@ -166,14 +166,17 @@ export default function PrintBriefingPage() {
       .replace(/`(.+?)`/g, "$1");          // `code` → plain
   }
 
-  // Parse briefing text into sections
+  // Parse briefing text into sections, excluding "Using Player Notes" —
+  // player notes already appear in the course table below the briefing.
+  const EXCLUDED_SECTIONS = ["using player notes", "using player history"];
   const briefingSections = bj.display_text
     .split(/^## /m)
     .filter(Boolean)
     .map((s) => {
       const lines = s.split("\n");
       return { title: lines[0]?.trim() ?? "", body: lines.slice(1).join("\n").trim() };
-    });
+    })
+    .filter((s) => !EXCLUDED_SECTIONS.includes(s.title.toLowerCase()));
 
   return (
     <>
