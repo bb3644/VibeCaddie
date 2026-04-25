@@ -223,6 +223,25 @@ export interface SaveOp36RoundData {
 }
 
 // ============================================================
+// Training Journal
+// ============================================================
+
+export interface TrainingJournal {
+  id: string;
+  user_id: string;
+  session_date: string;
+  location: string | null;
+  focus_area: string;
+  plan: string;
+  reflection: string | null;
+  ai_feedback: string | null;
+  ai_feedback_at: string | null;
+  status: 'planned' | 'completed' | 'reviewed';
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================
 // Briefing JSON 结构
 // ============================================================
 

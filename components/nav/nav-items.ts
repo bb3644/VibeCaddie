@@ -7,6 +7,7 @@ export const navItems: NavItem[] = [
   { label: "Courses", href: "/courses", icon: "map" },
   { label: "Rounds", href: "/rounds", icon: "clipboard" },
   { label: "Shot Tracker", href: "/rounds/tracker", icon: "target" },
+  { label: "Training", href: "/training", icon: "journal" },
   { label: "Op 36", href: "/op36", icon: "op36" },
   { label: "Chat", href: "/chat", icon: "chat" },
   { label: "Profile", href: "/profile", icon: "user" },
