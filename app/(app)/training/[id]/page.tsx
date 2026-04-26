@@ -4,7 +4,7 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FocusAreaPicker } from "../new/page";
+import { FocusAreaPicker } from "@/components/training/focus-area-picker";
 import type { TrainingJournal } from "@/lib/db/types";
 
 const REFLECTION_PROMPTS = [
