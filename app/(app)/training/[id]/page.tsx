@@ -40,6 +40,7 @@ export default function TrainingJournalDetailPage({
   // Reflection state
   const [reflection, setReflection] = useState("");
   const [savingReflection, setSavingReflection] = useState(false);
+  const [editingReflection, setEditingReflection] = useState(false);
   const [showPrompts, setShowPrompts] = useState(false);
 
   // Plan edit state
@@ -117,6 +118,8 @@ export default function TrainingJournalDetailPage({
       if (!res.ok) throw new Error();
       const updated: TrainingJournal = await res.json();
       setJournal(updated);
+      setReflection(updated.reflection ?? "");
+      setEditingReflection(false);
     } catch {
       setError("Couldn't save reflection. Try again.");
     } finally {
@@ -171,7 +174,6 @@ export default function TrainingJournalDetailPage({
   }
 
   const reflectionSaved = !!journal.reflection;
-  const reflectionChanged = reflection.trim() !== (journal.reflection ?? "").trim();
 
   return (
     <div className="flex flex-col gap-6 max-w-xl">
@@ -272,40 +274,63 @@ export default function TrainingJournalDetailPage({
 
       {/* Reflection */}
       <Card>
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-[0.75rem] font-semibold text-secondary uppercase tracking-wide">Reflection</p>
-          <button
-            onClick={() => setShowPrompts((v) => !v)}
-            className="text-[0.75rem] text-accent hover:underline cursor-pointer"
-          >
-            {showPrompts ? "Hide prompts" : "What to write about?"}
-          </button>
-        </div>
+        {reflectionSaved && !editingReflection ? (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[0.75rem] font-semibold text-secondary uppercase tracking-wide">Reflection</p>
+              <button
+                onClick={() => setEditingReflection(true)}
+                className="text-[0.75rem] text-accent hover:underline cursor-pointer"
+              >
+                Edit
+              </button>
+            </div>
+            <p className="text-[0.9375rem] text-text whitespace-pre-wrap">{journal.reflection}</p>
+          </div>
+        ) : (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[0.75rem] font-semibold text-secondary uppercase tracking-wide">Reflection</p>
+              <button
+                onClick={() => setShowPrompts((v) => !v)}
+                className="text-[0.75rem] text-accent hover:underline cursor-pointer"
+              >
+                {showPrompts ? "Hide prompts" : "What to write about?"}
+              </button>
+            </div>
 
-        {showPrompts && (
-          <ul className="mb-3 flex flex-col gap-1">
-            {REFLECTION_PROMPTS.map((p) => (
-              <li key={p} className="text-[0.8125rem] text-secondary flex gap-2">
-                <span className="text-secondary/50">·</span>
-                <span>{p}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+            {showPrompts && (
+              <ul className="mb-3 flex flex-col gap-1">
+                {REFLECTION_PROMPTS.map((p) => (
+                  <li key={p} className="text-[0.8125rem] text-secondary flex gap-2">
+                    <span className="text-secondary/50">·</span>
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
 
-        <textarea
-          value={reflection}
-          onChange={(e) => setReflection(e.target.value)}
-          placeholder="How did it go? Write anything — no pressure."
-          rows={6}
-          className="w-full border border-divider rounded-lg px-3 py-2 text-[0.9375rem] text-text bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 placeholder:text-secondary/60 resize-none"
-        />
+            <textarea
+              value={reflection}
+              onChange={(e) => setReflection(e.target.value)}
+              placeholder="How did it go? Write anything — no pressure."
+              rows={6}
+              className="w-full border border-divider rounded-lg px-3 py-2 text-[0.9375rem] text-text bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 placeholder:text-secondary/60 resize-none"
+            />
 
-        {(reflectionChanged || !reflectionSaved) && reflection.trim() && (
-          <div className="mt-3">
-            <Button onClick={saveReflection} disabled={savingReflection}>
-              {savingReflection ? "Saving..." : reflectionSaved ? "Update Reflection" : "Save Reflection"}
-            </Button>
+            <div className="flex gap-3 mt-3">
+              <Button onClick={saveReflection} disabled={savingReflection || !reflection.trim()}>
+                {savingReflection ? "Saving..." : "Save Reflection"}
+              </Button>
+              {editingReflection && (
+                <button
+                  onClick={() => { setReflection(journal.reflection ?? ""); setEditingReflection(false); }}
+                  className="px-4 py-2 text-[0.9375rem] text-secondary hover:text-text transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           </div>
         )}
       </Card>
