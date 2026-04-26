@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const FOCUS_AREAS = [
+export const FOCUS_AREAS = [
   "Driving",
   "Fairway woods",
   "Long irons",
@@ -22,6 +22,44 @@ const FOCUS_AREAS = [
   "Other",
 ];
 
+export function FocusAreaPicker({
+  selected,
+  onChange,
+}: {
+  selected: string[];
+  onChange: (areas: string[]) => void;
+}) {
+  function toggle(area: string) {
+    onChange(
+      selected.includes(area)
+        ? selected.filter((a) => a !== area)
+        : [...selected, area]
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {FOCUS_AREAS.map((area) => {
+        const active = selected.includes(area);
+        return (
+          <button
+            key={area}
+            type="button"
+            onClick={() => toggle(area)}
+            className={`px-3 py-1.5 rounded-full text-[0.8125rem] font-medium border transition-colors cursor-pointer ${
+              active
+                ? "bg-accent text-white border-accent"
+                : "bg-white text-secondary border-divider hover:border-accent/50 hover:text-text"
+            }`}
+          >
+            {area}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function NewTrainingSessionPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -29,21 +67,15 @@ export default function NewTrainingSessionPage() {
 
   const today = new Date().toISOString().split("T")[0];
 
-  const [form, setForm] = useState({
-    session_date: today,
-    location: "",
-    focus_area: "",
-    plan: "",
-  });
-
-  function set(field: string, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
+  const [sessionDate, setSessionDate] = useState(today);
+  const [location, setLocation] = useState("");
+  const [focusAreas, setFocusAreas] = useState<string[]>([]);
+  const [plan, setPlan] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.focus_area || !form.plan.trim()) {
-      setError("Focus area and plan are required.");
+    if (focusAreas.length === 0 || !plan.trim()) {
+      setError("Select at least one focus area and add your plan.");
       return;
     }
     setSaving(true);
@@ -53,10 +85,10 @@ export default function NewTrainingSessionPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          session_date: form.session_date,
-          location: form.location.trim() || undefined,
-          focus_area: form.focus_area,
-          plan: form.plan.trim(),
+          session_date: sessionDate,
+          location: location.trim() || undefined,
+          focus_area: focusAreas.join(", "),
+          plan: plan.trim(),
         }),
       });
       if (!res.ok) throw new Error("Failed to save");
@@ -82,42 +114,35 @@ export default function NewTrainingSessionPage() {
               <label className="text-[0.875rem] font-medium text-text">Date</label>
               <input
                 type="date"
-                value={form.session_date}
-                onChange={(e) => set("session_date", e.target.value)}
+                value={sessionDate}
+                onChange={(e) => setSessionDate(e.target.value)}
                 className="w-full border border-divider rounded-lg px-3 py-2 text-[0.9375rem] text-text bg-white focus:outline-none focus:ring-2 focus:ring-accent/30"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[0.875rem] font-medium text-text">Location <span className="text-secondary font-normal">(optional)</span></label>
+              <label className="text-[0.875rem] font-medium text-text">
+                Location <span className="text-secondary font-normal">(optional)</span>
+              </label>
               <input
                 type="text"
-                value={form.location}
-                onChange={(e) => set("location", e.target.value)}
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
                 placeholder="e.g. Range at Oak Hills"
                 className="w-full border border-divider rounded-lg px-3 py-2 text-[0.9375rem] text-text bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 placeholder:text-secondary/60"
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[0.875rem] font-medium text-text">Focus Area</label>
-              <select
-                value={form.focus_area}
-                onChange={(e) => set("focus_area", e.target.value)}
-                className="w-full border border-divider rounded-lg px-3 py-2 text-[0.9375rem] text-text bg-white focus:outline-none focus:ring-2 focus:ring-accent/30"
-              >
-                <option value="">Select a focus area...</option>
-                {FOCUS_AREAS.map((f) => (
-                  <option key={f} value={f}>{f}</option>
-                ))}
-              </select>
+            <div className="flex flex-col gap-2">
+              <label className="text-[0.875rem] font-medium text-text">Focus Areas</label>
+              <FocusAreaPicker selected={focusAreas} onChange={setFocusAreas} />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label className="text-[0.875rem] font-medium text-text">Your Plan</label>
               <textarea
-                value={form.plan}
-                onChange={(e) => set("plan", e.target.value)}
+                value={plan}
+                onChange={(e) => setPlan(e.target.value)}
                 placeholder="What are you going to work on? Be specific — drills, goals, yardages, anything."
                 rows={5}
                 className="w-full border border-divider rounded-lg px-3 py-2 text-[0.9375rem] text-text bg-white focus:outline-none focus:ring-2 focus:ring-accent/30 placeholder:text-secondary/60 resize-none"
