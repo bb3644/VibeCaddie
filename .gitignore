@@ -30,6 +30,9 @@ yarn-error.log*
 
 # env files
 .env
+!.env.tpl
+!.env.local.tpl
+!.env.example
 .env*.local
 .env.local
 .env.production
