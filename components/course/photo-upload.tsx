@@ -14,6 +14,37 @@ interface ImageEntry {
   preview: string;
 }
 
+/** Compress image to max 1600px on longest side, JPEG quality 0.85 — keeps it under 1.5MB */
+async function compressImage(file: File): Promise<File> {
+  const MAX_PX = 1600;
+  const QUALITY = 0.85;
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { width, height } = img;
+      const scale = Math.min(1, MAX_PX / Math.max(width, height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(width * scale);
+      canvas.height = Math.round(height * scale);
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { resolve(file); return; }
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
+        },
+        "image/jpeg",
+        QUALITY
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
+
 /** 上传记分卡照片（支持多张）→ OCR 提取数据 */
 export function PhotoUpload({ onResult }: PhotoUploadProps) {
   const [images, setImages] = useState<ImageEntry[]>([]);
@@ -41,15 +72,16 @@ export function PhotoUpload({ onResult }: PhotoUploadProps) {
     setError("");
 
     try {
-      // OCR all images in parallel
+      // Compress then OCR all images in parallel
       const results = await Promise.all(
         images.map(async (entry) => {
+          const compressed = await compressImage(entry.file);
           const formData = new FormData();
-          formData.append("image", entry.file);
+          formData.append("image", compressed);
           const res = await fetch("/api/courses/ocr", { method: "POST", body: formData });
           if (!res.ok) {
             const data = await res.json().catch(() => ({}));
-            throw new Error(data.error || "Extraction failed");
+            throw new Error(data.error || "Failed to read scorecard — try a clearer photo in good lighting.");
           }
           return (await res.json()) as LookupResult;
         })
