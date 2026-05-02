@@ -6,6 +6,7 @@ import Link from "next/link";
 import { RoundSummary } from "@/components/round/round-summary";
 import { ShotTrackerSection } from "@/components/round/shot-tracker";
 import { RecapDisplay } from "@/components/recap/recap-display";
+import { RecapChat } from "@/components/recap/recap-chat";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { Round, RoundHole, CourseHole } from "@/lib/db/types";
@@ -386,6 +387,20 @@ export default function RoundDetailPage() {
                 courseName={round.course_name ?? "Unknown Course"}
                 teeName={round.tee_name ?? ""}
                 playedDate={round.played_date}
+                stats={(() => {
+                  const scored = round.holes.filter((h) => h.score != null);
+                  const par4plus = scored.filter((h) => {
+                    const ch = round.course_holes.find((c) => c.hole_number === h.hole_number);
+                    return ch ? ch.par >= 4 : true;
+                  });
+                  const fir = par4plus.filter((h) => h.tee_result === "FW").length;
+                  const gir = scored.filter((h) => h.approach_distance === "GIR").length;
+                  const holesWithPutts = scored.filter((h) => h.putts != null).length;
+                  const putts = holesWithPutts > 0
+                    ? scored.reduce((sum, h) => sum + (h.putts ?? 0), 0)
+                    : null;
+                  return { fir, firTotal: par4plus.length, gir, girTotal: scored.length, putts, holesWithPutts };
+                })()}
               />
               <div className="flex gap-3">
                 <Button
@@ -401,6 +416,10 @@ export default function RoundDetailPage() {
                   Regenerate
                 </Button>
               </div>
+              <RecapChat
+                courseName={round.course_name ?? "Unknown Course"}
+                playedDate={round.played_date}
+              />
             </>
           )}
         </div>

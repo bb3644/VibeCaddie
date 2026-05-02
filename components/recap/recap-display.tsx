@@ -4,11 +4,21 @@ import { Card } from "@/components/ui/card";
 import { SectionTitle } from "@/components/ui/section-title";
 import { Button } from "@/components/ui/button";
 
+interface RoundStats {
+  fir: number;
+  firTotal: number;
+  gir: number;
+  girTotal: number;
+  putts: number | null;
+  holesWithPutts: number;
+}
+
 interface RecapDisplayProps {
   recapText: string;
   courseName: string;
   teeName: string;
   playedDate: string;
+  stats?: RoundStats;
 }
 
 /** 将 recap text 按 ## 拆分并渲染为段落（同 briefing-display 方式） */
@@ -63,6 +73,7 @@ export function RecapDisplay({
   courseName,
   teeName,
   playedDate,
+  stats,
 }: RecapDisplayProps) {
   const formattedDate = new Date(playedDate + "T00:00:00").toLocaleDateString(
     "en-US",
@@ -105,6 +116,46 @@ export function RecapDisplay({
           Print
         </Button>
       </div>
+
+      {/* FIR / GIR / Putts stats */}
+      {stats && (
+        <Card>
+          <SectionTitle className="mb-3">Round Stats</SectionTitle>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="flex flex-col items-center gap-0.5">
+              <p className="text-[1.375rem] font-bold text-text">
+                {stats.firTotal > 0
+                  ? `${Math.round((stats.fir / stats.firTotal) * 100)}%`
+                  : "—"}
+              </p>
+              <p className="text-[0.75rem] text-secondary uppercase tracking-wide">FIR</p>
+              <p className="text-[0.75rem] text-secondary">
+                {stats.fir}/{stats.firTotal}
+              </p>
+            </div>
+            <div className="flex flex-col items-center gap-0.5">
+              <p className="text-[1.375rem] font-bold text-text">
+                {stats.girTotal > 0
+                  ? `${Math.round((stats.gir / stats.girTotal) * 100)}%`
+                  : "—"}
+              </p>
+              <p className="text-[0.75rem] text-secondary uppercase tracking-wide">GIR</p>
+              <p className="text-[0.75rem] text-secondary">
+                {stats.gir}/{stats.girTotal}
+              </p>
+            </div>
+            <div className="flex flex-col items-center gap-0.5">
+              <p className="text-[1.375rem] font-bold text-text">
+                {stats.holesWithPutts > 0 && stats.putts != null ? stats.putts : "—"}
+              </p>
+              <p className="text-[0.75rem] text-secondary uppercase tracking-wide">Putts</p>
+              <p className="text-[0.75rem] text-secondary">
+                {stats.holesWithPutts > 0 ? `${stats.holesWithPutts} holes` : "not tracked"}
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* LLM 生成的回顾内容 */}
       <Card>

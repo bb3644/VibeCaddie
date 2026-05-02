@@ -43,7 +43,8 @@ export async function handleChatMessage(
   if (profile) {
     contextPrompt += `## Player\n`;
     contextPrompt += `Name: ${profile.name}`;
-    if (profile.handicap_index) contextPrompt += `, Handicap Index: ${profile.handicap_index}`;
+    const effectiveHandicap = profile.vibecaddie_index ?? profile.handicap_index;
+    if (effectiveHandicap != null) contextPrompt += `, Indicative Handicap: ${effectiveHandicap}`;
     if (profile.sex) contextPrompt += `, ${profile.sex}`;
     contextPrompt += '\n\n';
   }

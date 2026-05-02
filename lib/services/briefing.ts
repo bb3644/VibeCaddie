@@ -81,9 +81,10 @@ export async function generateBriefing(
   // 6. Strategy engine
   const briefingData: BriefingData = computeBriefing(holesWithHazards, historyInputs, playerDistance);
 
-  // 7. Compute Playing Handicap
+  // 7. Compute Playing Handicap — prefer auto-calculated VibeCaddie Index over manual entry
+  const effectiveHandicap = playerProfile?.vibecaddie_index ?? playerProfile?.handicap_index ?? null;
   const playingHandicap = computePlayingHandicap(
-    playerProfile?.handicap_index ?? null,
+    effectiveHandicap,
     teeInfo?.course_rating ?? null,
     teeInfo?.slope_rating ?? null,
     teeInfo?.par_total ?? null,
@@ -97,7 +98,7 @@ export async function generateBriefing(
     officialNotes,
     historyInputs,
     prevRoundDetails,
-    playerProfile?.handicap_index ?? null,
+    effectiveHandicap,
     teeInfo,
     playingHandicap,
   );
@@ -112,7 +113,7 @@ export async function generateBriefing(
     avoid_side: briefingData.avoid_side,
     display_text: llmResponse.content,
     playing_handicap: playingHandicap,
-    handicap_index: playerProfile?.handicap_index ?? null,
+    handicap_index: effectiveHandicap,
     course_rating: teeInfo?.course_rating ?? null,
     slope_rating: teeInfo?.slope_rating ?? null,
     par_total: teeInfo?.par_total ?? null,
