@@ -18,27 +18,27 @@ export function Logo({ className = "" }: LogoProps) {
       <text
         x="130"
         y="46"
-        fontFamily="var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif"
+        fontFamily="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', ui-sans-serif, system-ui, sans-serif"
         fontSize="38"
         fontWeight="700"
-        fill="#007749"
+        fill="#1D1D1F"
         letterSpacing="-1.5"
         textAnchor="middle"
       >
         Vibe Caddie
       </text>
 
-      {/* Pink accent line */}
-      <line x1="20" y1="56" x2="240" y2="56" stroke="#F4B8B0" strokeWidth="1.2" />
+      {/* Subtle divider line */}
+      <line x1="20" y1="56" x2="240" y2="56" stroke="#D2D2D7" strokeWidth="1" />
 
       {/* "GOLF CURATION" */}
       <text
         x="130"
         y="70"
-        fontFamily="var(--font-inter), 'Inter', ui-sans-serif, system-ui, sans-serif"
+        fontFamily="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', ui-sans-serif, system-ui, sans-serif"
         fontSize="8"
         fontWeight="500"
-        fill="#F4B8B0"
+        fill="#6E6E73"
         letterSpacing="4"
         textAnchor="middle"
       >
