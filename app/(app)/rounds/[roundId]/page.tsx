@@ -387,6 +387,14 @@ export default function RoundDetailPage() {
                 courseName={round.course_name ?? "Unknown Course"}
                 teeName={round.tee_name ?? ""}
                 playedDate={round.played_date}
+                holeData={round.holes
+                  .filter((h) => h.score != null)
+                  .map((h) => {
+                    const ch = round.course_holes.find((c) => c.hole_number === h.hole_number);
+                    return ch ? { hole: h.hole_number, score: h.score!, par: ch.par } : null;
+                  })
+                  .filter((h): h is { hole: number; score: number; par: number } => h !== null)
+                  .sort((a, b) => a.hole - b.hole)}
                 stats={(() => {
                   const scored = round.holes.filter((h) => h.score != null);
                   const par4plus = scored.filter((h) => {
