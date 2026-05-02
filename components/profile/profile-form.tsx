@@ -25,7 +25,7 @@ function IndicativeHandicap({
       if (!res.ok) throw new Error(data.error ?? "Failed");
       onRecalculated(data.vibecaddie_index);
     } catch {
-      setError("Could not calculate. Make sure you have 3+ completed rounds on courses with ratings.");
+      setError("Could not calculate. Make sure you have 3+ rounds with a total score recorded.");
     } finally {
       setRecalculating(false);
     }

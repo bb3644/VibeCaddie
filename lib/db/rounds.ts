@@ -187,26 +187,22 @@ export async function saveRecapText(
 }
 
 /**
- * 获取球员最近 20 场有评级数据的轮次（用于 handicap 计算）
+ * 获取球员最近 20 场有总分的轮次（含评级和 par，用于 handicap 计算）
+ * 不强制要求 course_rating/slope_rating，允许 par-based fallback
  */
 export interface RoundWithRatings extends Round {
   course_rating: number | null;
   slope_rating: number | null;
+  par_total: number;
 }
 
 export async function getPlayerRoundsWithRatings(userId: string): Promise<RoundWithRatings[]> {
   const result = await query<RoundWithRatings>(
-    `SELECT r.*, ct.course_rating, ct.slope_rating
+    `SELECT r.*, ct.course_rating, ct.slope_rating, ct.par_total
      FROM rounds r
      JOIN course_tees ct ON r.course_tee_id = ct.id
      WHERE r.user_id = $1
        AND r.total_score IS NOT NULL
-       AND ct.course_rating IS NOT NULL AND ct.course_rating > 0
-       AND ct.slope_rating IS NOT NULL AND ct.slope_rating > 0
-       AND (
-         SELECT COUNT(*) FROM round_holes rh
-         WHERE rh.round_id = r.id AND rh.score IS NOT NULL
-       ) >= r.holes_played
      ORDER BY r.played_date DESC
      LIMIT 20`,
     [userId]

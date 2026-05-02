@@ -39,12 +39,24 @@ export async function calculateAndSaveVibecaddieIndex(userId: string): Promise<n
   const rounds = await getPlayerRoundsWithRatings(userId);
 
   const differentials = rounds
-    .filter(r => r.total_score !== null && r.course_rating !== null && r.slope_rating !== null)
+    .filter(r => r.total_score !== null)
     .map(r => {
-      // For 9-hole rounds, double the score to get an 18-hole equivalent differential
+      // For 9-hole rounds, double to get an 18-hole equivalent
       const score = (r.holes_played === 9) ? r.total_score! * 2 : r.total_score!;
-      return calculateDifferential(score, r.course_rating!, r.slope_rating!);
-    });
+
+      // Prefer full WHS differential when course ratings are available
+      if (r.course_rating && r.course_rating > 0 && r.slope_rating && r.slope_rating > 0) {
+        return calculateDifferential(score, r.course_rating, r.slope_rating);
+      }
+
+      // Fallback: score vs par (equivalent to WHS with slope=113, rating=par)
+      if (r.par_total && r.par_total > 0) {
+        return score - r.par_total;
+      }
+
+      return null;
+    })
+    .filter((d): d is number => d !== null);
 
   if (differentials.length < 3) return null;
 
